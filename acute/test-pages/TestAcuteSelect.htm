@@ -1,0 +1,83 @@
+﻿<!DOCTYPE html>
+<html id="ng-app" ng-app="acuteSelectTest">
+<head>
+    <title></title>
+    <!--[if lte IE 8]>
+      <script src="/Scripts/json2.js"></script>
+    <![endif]-->
+    <script src="../lib/angular.min.1.2.0.rc3.js"></script>
+    <script src="../acute.core/acute.core.directives.js"></script>
+    <script src="../acute.core/acute.core.services.js"></script>
+    <script src="../acute.select/acute.select.js"></script>
+    <link href="../acute.select/acute.select.css" rel="stylesheet" />
+    <script src="TestAcuteSelect.js"></script>
+    <style>
+        body {
+            margin: 2em;
+        }
+        body, input, select {
+            font-family: Arial;
+            font-size: 12px;
+        }
+        .stateList {
+            width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div ng-controller="MainCtrl">
+        Basic mode without search<br />
+        <!-- N.B. self-closing select results in spurious mark-up! -->
+        <select class="acute-select" acute-model="colour" acute-options="c.name for c in colours" acute-settings="{ showSearchBox: false }"></select>  Colour selected: {{selectedColour}}
+        <br /><br />
+
+        Allow custom text<br />
+        <select class="acute-select" acute-model="colour" acute-options="c.name for c in colours" acute-settings="{ allowCustomText: true }"></select>  Colour selected: {{selectedColour}}
+        <br /><br />
+
+        Search mode with load when created<br />
+        <select class="acute-select stateList" acute-model="state" acute-options="s.name for s in getAllStates()" 
+            acute-settings="{loadOnCreate: true, comboMode:false, minWidth: '300px' }"></select> State selected: {{state.name}}
+        <br /><br />
+
+        Search mode with load on first use<br />
+        <select class="acute-select stateList" acute-model="state" acute-options="s.name for s in getAllStates()" 
+            acute-settings="{loadOnOpen: true, comboMode:false, minWidth: '300px' }"></select> State selected: {{state.name}}
+        <br /><br />
+
+        Combo mode - load when user types<br />
+        <select class="acute-select stateList" acute-model="state" acute-options="s.name for s in getStates()" 
+            acute-settings="{comboMode:true, noItemsText:'Enter 1 or more characters', minWidth: '300px'}"></select>
+        <br /><br />
+
+        Search mode with load on first use; allowClear = false; filter mode: contains<br />
+        <select class="acute-select stateList" acute-model="state" acute-options="s.name for s in getAllStates()" 
+            acute-settings="{loadOnOpen: true, minWidth: '300px', allowClear: false, filterType: 'contains'}"></select>
+
+        <br /><br />
+        Paging:<br />
+        <select class="acute-select stateList" acute-model="state" acute-options="s.name for s in getStatesPaged()" 
+            acute-settings="{noItemsText:'Enter 1 or more characters', minWidth: '300px', itemsInView: 10, minSearchLength: 0 }"></select>
+        <br /><br />
+
+        Paging with first page of data loading when dropdown opens:<br />
+        <select class="acute-select stateList" acute-model="state" acute-options="s.name for s in getStatesPaged()" 
+            acute-settings="{noItemsText:'Enter 1 or more characters', minWidth: '300px', itemsInView: 10, minSearchLength: 0, loadOnOpen: true }"></select>
+        <br /><br />
+
+    </div>
+    <div>
+        <select>
+            <option>Normal Select Box 1</option>
+            <option>red</option>
+            <option>black</option>
+            <option>yellow</option>
+            <option>orange</option>
+            <option>blue</option>
+            <option>brown</option>
+            <option>green</option>
+            <option>white</option>
+        </select>
+    </div>
+</body>
+</html>

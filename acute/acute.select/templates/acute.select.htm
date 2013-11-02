@@ -1,0 +1,50 @@
+﻿<div class="acute-select-wrapper" ng-keydown="keyHandler($event)" tabindex="999" acute-focus="wrapperFocus">
+    <div ng-class="{'acute-select-main':true, 'acute-select-main-closed':!popupVisible, 'acute-select-main-open':popupVisible}" ng-click="mainClick()">
+        <table class="acute-select-table" ng-click="togglePopup()" ng-style="{'minWidth': settings.minWidth }">
+            <tr>
+                <td class="acute-select-display">
+                    <div class="acute-select-text-wrapper" ng-show="settings.comboMode">
+                        <input type="text" class="acute-select-text" ng-model="comboText" ng-model="comboText" acute-focus="comboFocus" ng-change="comboTextChange()"
+                            placeholder="{{placeholderText}}" ng-keydown="keyHandler($event)" />
+                    </div>
+                    <span ng-hide="settings.comboMode">{{selectedItem.text}}</span>
+                </td>
+                <td class="acute-select-image"></td>
+            </tr>
+            <!--Row to get the control width right, using the original select or the longest item text. Hidden at runtime.-->
+            <tr class="acute-select-widener">
+                <td class="acute-select-longest">{{longestText}}</td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+    <div class="acute-select-popup" ng-show="popupVisible">
+        <div class="acute-select-search-wrapper" ng-hide="settings.comboMode || !settings.showSearchBox">
+            <table>
+                <tr>
+                    <td>
+                        <input type="text" class="acute-select-search" ng-model="searchText" placeholder="search" acute-focus="searchBoxFocus"
+                            ng-change="findData()" ng-keydown="keyHandler($event)" />
+                    </td>
+                    <td class="acute-select-add" ng-class="{ 'acute-select-disabled': matchFound }" title="Add" ng-show="settings.allowCustomText" ng-click="addButtonClick()">
+                        <div>+</div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="acute-select-no-items" ng-show="items.length==0">{{settings.noItemsText}}</div>
+        <div class="acute-select-list" ng-style='{ "height": (listHeight + 6) + "px" }' ac-scroll-to="scrollTo" ac-on-scroll="listScrolled()">
+            <ul>
+                <li id="{{item.id}}" ng-model="selectedItem" ng-repeat="item in items | filter: search" 
+                    ng-class="getItemClass($index)" ng-click="itemClick($index)" ng-style="{ height: settings.itemHeight + 'px', 'line-height': settings.itemHeight + 'px' }">
+                    {{item.text}}
+                </li>
+            </ul>
+            <div class="acute-select-loading" ng-show="showLoadingMessage" ng-style="{ height: settings.itemHeight + 'px'}">Loading...</div>
+        </div>
+        <div class="acute-select-load-more" ng-show="paging && items.length >= settings.itemsInView">
+            Items 1 to {{items.length}} of {{matchingItemTotal}} 
+            <span ng-show="items.length < matchingItemTotal" ng-click="loadMore()">Load more...</span>
+        </div>
+    </div>
+</div>
