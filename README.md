@@ -4,20 +4,22 @@ acute-select
 Dropdown select for AngularJS, with no external dependencies.
 
 Features:-<br/>
-Search box, to filter results
-Syntax in line with angular's ngOptions:-
+<ul>
+<li>Search box - to filter items</li>
+<li>Syntax in line with angular's ngOptions:-<br/>
 
 e.g. &lt;ac-select ac-model='selectedColour' ac-options='colour.name for colour in colours'&gt;&lt;/ac-select&gt;
 
-Load on demand:-
+<li>Load on demand:-<br/>
 
 'colours' in the above example can be replaced with 'colours()' which is a function to load the required data.
+</li>
+<li>Paging</li>
 
-Paging
+<li>Keyboard navigation (requires AngularJS 1.2.0)</li>
 
-Keyboard navigation
-
-Combo Mode - i.e. textbox combined with dropdown list.
+<li>Combo Mode</li> - i.e. textbox combined with dropdown list.
+</ul>
 
 settings
 ========
