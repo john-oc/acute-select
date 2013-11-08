@@ -15,10 +15,13 @@
   <script src="../lib/angular-mocks.1.2.rc3.js"></script>
 
     <!-- include source files here... -->
-    <script src="../acute.core/acute.core.directives.js"></script>
+    <script src="../acute.select/acute.select.js"></script>
+
+    <!--CSS-->
+    <link href="../acute.select/acute.select.css" rel="stylesheet" />
 
     <!-- include spec files here... -->
-    <script src="spec/acuteCoreDirectivesSpec.js"></script>
+    <script src="spec/acuteSelectSpec.js"></script>
 
   <script type="text/javascript">
     (function() {
@@ -52,5 +55,10 @@
 </head>
 
 <body>
+
+    <!-- Load template partials -->
+    <div class="ng-include acute-select-template" src="'../acute.select/templates/acute.select.htm'"></div>
+
+
 </body>
 </html>

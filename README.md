@@ -4,7 +4,7 @@ acute-select
 Dropdown select for AngularJS, with no external dependencies.
 
 Features:-<br/>
-Search box, to filter results
+Search box, to filter results<br/>
 Syntax in line with angular's ngOptions:-
 
 e.g. &lt;ac-select ac-model='selectedColour' ac-options='colour.name for colour in colours'&gt;&lt;/ac-select&gt;

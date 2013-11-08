@@ -13,7 +13,7 @@
 
  //Note:- acute-options works like ng-options, but does not support option groups
 
-angular.module("acute.select", ["acute.core.directives", "acute.core.services"])
+angular.module("acute.select", [])
 .directive("acuteSelect", function ($parse) {
     return {
         restrict: "AC",
@@ -119,7 +119,7 @@ angular.module("acute.select", ["acute.core.directives", "acute.core.services"])
         // **************************************************************
         //                          CONTROLLER
         // **************************************************************
-        controller: function ($scope, $element, $attrs, $window, $rootScope, $timeout, $filter, safeApply, keyCode) {
+        controller: function ($scope, $element, $attrs, $window, $rootScope, $timeout, $filter, navKey, safeApply) {
 
             // Create dropdown items based on the source data items
             $scope.loadItems = function (dataItems, selectedDataItem) {
@@ -172,31 +172,31 @@ angular.module("acute.select", ["acute.core.directives", "acute.core.services"])
 
                 var stopPropagation = true;
                 switch (event.which || event.keyCode) {
-                    case keyCode.downArrow:
+                    case navKey.downArrow:
                         downArrowKey();
                         break;
-                    case keyCode.upArrow:
+                    case navKey.upArrow:
                         upArrowKey();
                         break;
-                    case keyCode.enter:
+                    case navKey.enter:
                         enterKey();
                         break;
-                    case keyCode.end:
+                    case navKey.end:
                         endKey();
                         break;
-                    case keyCode.home:
+                    case navKey.home:
                         homeKey();
                         break;
-                    case keyCode.escape:
+                    case navKey.escape:
                         escapeKey();
                         break;
-                    case keyCode.del:
+                    case navKey.del:
                         deleteKey(event);
                         break;
-                    case keyCode.pageUp:
+                    case navKey.pageUp:
                         pageUpKey();
                         break;
-                    case keyCode.pageDown:
+                    case navKey.pageDown:
                         pageDownKey();
                         break;
                     default:
@@ -586,4 +586,99 @@ angular.module("acute.select", ["acute.core.directives", "acute.core.services"])
             }
         }
     };
-});
+})
+
+// Directive to set focus to an element when a specified expression is true
+.directive('acuteFocus', function ($timeout, $parse) {
+    return {
+        restrict: "A",
+        link: function (scope, element, attributes) {
+            var setFocus = $parse(attributes.acuteFocus);
+            scope.$watch(setFocus, function (value) {
+                if (value === true) {
+                    $timeout(function () {
+                        element[0].focus();
+                    });
+                }
+            });
+            // Set the "setFocus" attribute value to 'false' on blur event
+            // using the "assign" method on the function that $parse returns
+            element.bind('blur', function () {
+                scope.$apply(setFocus.assign(scope, false));
+            });
+        }
+    };
+})
+
+// Directive for a scroll container. Set acute-scroll-top to an expression and the div will scroll when it changes
+.directive('acScrollTo', function () {
+    return {
+        restrict: "A",
+        scope: false,
+        controller: function ($scope, $element, $attrs) {
+            var expression = $attrs.acScrollTo;
+            $scope.$watch(expression, function () {
+                var scrollTop = $scope.$eval(expression);
+                angular.element($element)[0].scrollTop = scrollTop;
+            });
+        }
+    };
+})
+
+// Call a function when the element is scrolled
+// E.g. ac-on-scroll="listScrolled()" 
+// N.B. take care not to use the result to directly update an acScrollTo expression
+// as this will result in an infinite recursion!
+.directive('acOnScroll', function () {
+    return {
+        restrict: "A",
+        link: function (scope, element, attrs) {
+            var callbackName = attrs.acOnScroll;
+            if (callbackName.indexOf("()") === callbackName.length - 2) {
+                callbackName = callbackName.substr(0, callbackName.length - 2);
+            }
+            var callback = scope[callbackName];
+            if (typeof callback === "function") {
+                element.bind("scroll", function () {
+                    callback(element[0].scrollTop);
+                });
+            }
+        }
+    };
+})
+
+.factory('navKey', function () {
+    return {
+        'backspace': 8,
+        'tab': 9,
+        'enter': 13,
+        'escape': 27,
+        'pageUp': 33,
+        'pageDown': 34,
+        'end': 35,
+        'home': 36,
+        'leftArrow': 37,
+        'upArrow': 38,
+        'rightArrow': 39,
+        'downArrow': 40,
+        'del': 46
+    };
+})
+
+// safeApply service, courtesy Alex Vanston and Andrew Reutter
+.factory('safeApply', [function ($rootScope) {
+    return function ($scope, fn) {
+        var phase = $scope.$root.$$phase;
+        if (phase == '$apply' || phase == '$digest') {
+            if (fn) {
+                $scope.$eval(fn);
+            }
+        } else {
+            if (fn) {
+                $scope.$apply(fn);
+            } else {
+                $scope.$apply();
+            }
+        }
+    }
+}])
