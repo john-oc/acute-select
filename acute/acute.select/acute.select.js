@@ -58,10 +58,6 @@ angular.module("acute.select", [])
                 throw "acute-options and acute-model attributes must be set";
             }
 
-            if (typeof scope.acuteModel !== "object") {
-                throw "acute-model attribute value must be an object";
-            }
-
             if (attrs.acuteSettings != undefined) {
                 scope.acuteSettings = scope.$eval(attrs.acuteSettings);
                 if (typeof scope.acuteSettings === "object") {
@@ -78,41 +74,51 @@ angular.module("acute.select", [])
             scope.textField = "";
             scope.dataFunction = null;
 
-            if (len > 3) {
-                if (len > 4) {
-                    var label = words[len - 5];     // E.g. colour.name
-                    scope.textField = label.split(".")[1];
-                }
-                else {
-                    scope.textField = words[len - 3];
-                }
-                var dataName = words[len - 1];
+            if (len < 4) {
+                throw "should be in the form 'label for value in array' or 'for value in array'";
+            }
 
-                // See if a data load function is specified, i.e. name ends in "()"
-                if (dataName.indexOf("()") === dataName.length - 2) {
-                    dataName = dataName.substr(0, dataName.length - 2)
-                    // Get a reference to the data function
-                    var dataFunction = scope.$parent.$eval(dataName);
-                    if (typeof dataFunction === "function") {
-                        scope.dataFunction = dataFunction;
-                        if (scope.settings.loadOnCreate) {
-                            // Load initial data (args are callback function, search text and item offset)
-                            scope.dataFunction(scope.dataCallback, "", 0);
-                        }
-                    }
-                    else {
-                        throw "Invalid data function: " + dataName;
+            if (len > 4) {
+                var label = words[len - 5];     // E.g. colour.name
+                // TO DO check that "." is there!
+                scope.textField = label.split(".")[1];
+                if (typeof scope.acuteModel !== "object") {
+                    throw "acute-model attribute value should be an object";
+                }
+            }
+            else {
+                // 4 words - text field should be the 2nd
+                scope.textField = words[1];
+                if (typeof scope.acuteModel !== "string") {
+                    throw "acute-model attribute value should be a string";
+                }
+            }
+            var dataName = words[len - 1];
+
+            // See if a data load function is specified, i.e. name ends in "()"
+            if (dataName.indexOf("()") === dataName.length - 2) {
+                dataName = dataName.substr(0, dataName.length - 2)
+                // Get a reference to the data function
+                var dataFunction = scope.$parent.$eval(dataName);
+                if (typeof dataFunction === "function") {
+                    scope.dataFunction = dataFunction;
+                    if (scope.settings.loadOnCreate) {
+                        // Load initial data (args are callback function, search text and item offset)
+                        scope.dataFunction(scope.dataCallback, "", 0);
                     }
                 }
                 else {
-                    // Get the data from the parent scope
-                    var dataItems = scope.$parent.$eval(dataName);
-                    // Create dropdown items
-                    scope.loadItems(dataItems, scope.acuteModel);
-                    // Save selected item
-                    scope.confirmedItem = angular.copy(scope.selectedItem);
-                    scope.allDataLoaded = true;
+                    throw "Invalid data function: " + dataName;
                 }
+            }
+            else {
+                // Get the data from the parent scope
+                var dataItems = scope.$parent.$eval(dataName);
+                // Create dropdown items
+                scope.loadItems(dataItems, scope.acuteModel);
+                // Save selected item
+                scope.confirmedItem = angular.copy(scope.selectedItem);
+                scope.allDataLoaded = true;
             }
         },
 
