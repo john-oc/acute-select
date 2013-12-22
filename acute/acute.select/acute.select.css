@@ -1,12 +1,12 @@
 ﻿.acute-select-wrapper {
     position: relative;
     display: inline-block;
-    background-color: white;
 }
 
 .acute-select-wrapper, .acute-select-wrapper input, .acute-select-wrapper select {
     font-family: Arial;
     font-size: 12px;
+    background-color: white;
 }
 
 .acute-select-main {

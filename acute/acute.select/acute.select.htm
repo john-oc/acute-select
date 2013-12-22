@@ -4,7 +4,7 @@
             <tr>
                 <td class="acute-select-display">
                     <div class="acute-select-text-wrapper" ng-show="settings.comboMode">
-                        <input type="text" class="acute-select-text" ng-model="comboText" ng-model="comboText" acute-focus="comboFocus" ng-change="comboTextChange()"
+                        <input type="text" class="acute-select-text" ng-model="comboText" acute-focus="comboFocus" ng-change="comboTextChange()"
                             placeholder="{{placeholderText}}" ng-keydown="keyHandler($event)" />
                     </div>
                     <span ng-hide="settings.comboMode">{{confirmedItem.text}}</span>

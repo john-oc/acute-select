@@ -24,9 +24,9 @@ describe("Testing Acute Select Directive", function () {
             };
 
             // Using 'false' as the third parameter to open() makes the operation synchronous.
-            req.open("get", "../acute.select/templates/acute.select.htm", false);
+            req.open("get", "../acute.select/acute.select.htm", false);
             req.send();
-            $templateCache.put("/acute.select/templates/acute.select.htm", directiveTemplate);
+            $templateCache.put("/acute.select/acute.select.htm", directiveTemplate);
         });
     });
 
