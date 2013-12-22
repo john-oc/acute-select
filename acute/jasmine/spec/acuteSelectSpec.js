@@ -44,7 +44,7 @@ describe("Testing Acute Select Directive", function () {
         $scope.selectedColour = $scope.colours[2]; // red
 
         // Set our view html.
-        var html = '<select class="acute-select" acute-model="selectedColour" acute-options="selectedColour.name for colour in colours"></select>';
+        var html = '<select class="ac-select" ac-model="selectedColour" ac-options="selectedColour.name for colour in colours"></select>';
 
         // Get the jqLite or jQuery element
         var element = angular.element(html);
@@ -67,9 +67,8 @@ describe("Testing Acute Select Directive", function () {
         table.click();
         $scope.$digest();
 
-        var dropdownDiv = element.find(".acute-select-popup");
+        var dropdownDiv = element.find(".ac-select-popup");
         expect(dropdownDiv.length).toEqual(1);
-        //expect(dropdownDiv.is(":visible")).toBe(true);
         var searchBox = dropdownDiv.find("INPUT");
         expect(searchBox.length).toEqual(1);
         searchBox.text("r");

@@ -28,41 +28,46 @@
     <div ng-controller="MainCtrl">
         Basic mode without search<br />
         <!-- N.B. self-closing select results in spurious mark-up! -->
-        <select class="acute-select" acute-model="colour" acute-options="c.name for c in colours" acute-settings="{ showSearchBox: false }"></select>  Colour selected: {{selectedColour}}
+        <select class="ac-select" ac-model="colour" ac-options="c.name for c in colours" ac-settings="{ showSearchBox: false }"></select>  Colour selected: {{selectedColour}}
         <br /><br />
 
         Allow custom text<br />
-        <select class="acute-select" acute-model="colour" acute-options="c.name for c in colours" acute-settings="{ allowCustomText: true }"></select>  Colour selected: {{selectedColour}}
+        <select class="ac-select" ac-model="colour" ac-options="c.name for c in colours" ac-settings="{ allowCustomText: true }"></select>  Colour selected: {{selectedColour}}
         <br /><br />
 
         Search mode with load when created<br />
-        <select class="acute-select stateList" acute-model="state" acute-options="s.name for s in getAllStates()" 
-            acute-settings="{loadOnCreate: true, comboMode:false, minWidth: '300px' }"></select> State selected: {{state.name}}
+        <select class="ac-select stateList" ac-model="state1" ac-options="s.name for s in getAllStates()" 
+            ac-settings="{loadOnCreate: true, comboMode:false, minWidth: '300px' }"></select><br/>State selected: {{state1.name}}
         <br /><br />
 
-        Search mode with load on first use<br />
-        <select class="acute-select stateList" acute-model="state" acute-options="s.name for s in getAllStates()" 
-            acute-settings="{loadOnOpen: true, comboMode:false, minWidth: '300px' }"></select> State selected: {{state.name}}
+        Search mode with load on open<br />
+        <select class="ac-select stateList" ac-model="state2" ac-options="s.name for s in getAllStates()" 
+            ac-settings="{loadOnOpen: true, comboMode:false, minWidth: '300px' }"></select><br/>State selected: {{state2.name}}
         <br /><br />
 
         Combo mode - load when user types<br />
-        <select class="acute-select stateList" acute-model="state" acute-options="s.name for s in getStates()" 
-            acute-settings="{comboMode:true, noItemsText:'Enter 1 or more characters', minWidth: '300px'}"></select>
+        <select class="ac-select stateList" ac-model="state3" ac-options="s.name for s in getStates()" 
+            ac-settings="{comboMode:true, noItemsText:'Enter 1 or more characters', minWidth: '300px'}"></select><br/>State selected: {{state3.name}}
         <br /><br />
 
-        Search mode with load on first use; allowClear = false; filter mode: contains<br />
-        <select class="acute-select stateList" acute-model="state" acute-options="s.name for s in getAllStates()" 
-            acute-settings="{loadOnOpen: true, minWidth: '300px', allowClear: false, filterType: 'contains'}"></select>
+        Combo mode with load on open; allowClear = false; filter mode: contains<br />
+        <select class="ac-select stateList" ac-model="state4" ac-options="s.name for s in getAllStates()" 
+            ac-settings="{comboMode:true, loadOnOpen: true, minWidth: '300px', allowClear: false, filterType: 'contains'}"></select><br/>State selected: {{state4.name}}
 
         <br /><br />
         Paging:<br />
-        <select class="acute-select stateList" acute-model="state" acute-options="s.name for s in getStatesPaged()" 
-            acute-settings="{noItemsText:'Enter 1 or more characters', minWidth: '300px', itemsInView: 10, minSearchLength: 0 }"></select>
+        <select class="ac-select stateList" ac-model="state5" ac-options="s.name for s in getStatesPaged()" 
+            ac-settings="{noItemsText:'Enter 1 or more characters', minWidth: '300px', itemsInView: 10, minSearchLength: 0 }"></select><br/>State selected: {{state5.name}}
         <br /><br />
 
         Paging with first page of data loading when dropdown opens:<br />
-        <select class="acute-select stateList" acute-model="state" acute-options="s.name for s in getStatesPaged()" 
-            acute-settings="{noItemsText:'Enter 1 or more characters', minWidth: '300px', itemsInView: 10, minSearchLength: 0, loadOnOpen: true }"></select>
+        <select class="ac-select stateList" ac-model="state6" ac-options="s.name for s in getStatesPaged()" 
+            ac-settings="{noItemsText:'Enter 1 or more characters', minWidth: '300px', itemsInView: 10, minSearchLength: 0, loadOnOpen: true }"></select><br/>State selected: {{state6.name}}
+        <br /><br />
+
+        Search mode with load on open - as a custom element<br />
+        <ac-select class="stateList" ac-model="state2" ac-options="s.name for s in getAllStates()" 
+            ac-settings="{loadOnOpen: true, comboMode:false, minWidth: '300px' }"></ac-select><br/>State selected: {{state2.name}}
         <br /><br />
 
     </div>

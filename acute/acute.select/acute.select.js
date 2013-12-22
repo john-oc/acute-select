@@ -3,19 +3,19 @@
 //Directive that creates a searchable dropdown list.
 
 //Associated attributes:-
-//acute-model - use instead of ng-model
-//acute-options - use instead of ng-options.
+//ac-model - use instead of ng-model
+//ac-options - use instead of ng-options.
 
-//Example:- <select class="acute-select" acute-model="colour" acute-options="c.name for c in colours"></select>
+//Example:- <select class="ac-select" ac-model="colour" ac-options="c.name for c in colours"></select>
 
-//Note:- acute-options works like ng-options, but does not support option groups
+//Note:- ac-options works like ng-options, but does not support option groups
 
 angular.module("acute.select", [])
-.directive("acuteSelect", function ($parse) {
+.directive("acSelect", function ($parse) {
     return {
-        restrict: "AC",
+        restrict: "EAC",
         scope: {
-            "acuteSettings": "@"
+            "acSettings": "@"
         },
         replace: true,
         templateUrl: "/acute.select/acute.select.htm",
@@ -48,28 +48,28 @@ angular.module("acute.select", [])
             scope.scrollPosition = 0;   // Reported scroll position
             scope.listHeight = 0;
             scope.matchFound = false;
-            scope.acuteModel = null;
+            scope.acModel = null;
 
-            // Check that acute-options and acute-model values are set
-            var acuteOptions = attrs.acuteOptions;
-            if (acuteOptions === undefined || attrs.acuteModel === undefined) {
-                throw "acute-options and acute-model attributes must be set";
+            // Check that ac-options and ac-model values are set
+            var acOptions = attrs.acOptions;
+            if (acOptions === undefined || attrs.acModel === undefined) {
+                throw "ac-options and ac-model attributes must be set";
             }
 
-            scope.parentModelName = attrs.acuteModel;
+            scope.parentModelName = attrs.acModel;
 
-            if (attrs.acuteSettings != undefined) {
-                scope.acuteSettings = scope.$eval(attrs.acuteSettings);
-                if (typeof scope.acuteSettings === "object") {
+            if (attrs.acSettings != undefined) {
+                scope.acSettings = scope.$eval(attrs.acSettings);
+                if (typeof scope.acSettings === "object") {
                     // Merge settings with default values
-                    angular.extend(scope.settings, scope.acuteSettings);
+                    angular.extend(scope.settings, scope.acSettings);
                 }
             }
 
-            // Parse acuteOptions
+            // Parse acOptions
 
             // Value should be in the form "label for value in array" or "for value in array"
-            var words = acuteOptions.split(' ');
+            var words = acOptions.split(' ');
             var len = words.length;
             scope.textField = null;
             scope.dataFunction = null;
@@ -105,7 +105,7 @@ angular.module("acute.select", [])
                     // Get the data from the parent scope
                     var dataItems = scope.$parent.$eval(dataName);
                     // Create dropdown items
-                    scope.loadItems(dataItems, scope.acuteModel);
+                    scope.loadItems(dataItems, scope.acModel);
                     // Save selected item
                     scope.confirmedItem = angular.copy(scope.selectedItem);
                     scope.allDataLoaded = true;
@@ -163,7 +163,7 @@ angular.module("acute.select", [])
             // Close all instances when user clicks elsewhere
             $window.onclick = function (event) {
                 closeWhenClickingElsewhere(event, function () {
-                    $rootScope.$broadcast("acute-select-close-all");
+                    $rootScope.$broadcast("ac-select-close-all");
                 });
             };
 
@@ -226,15 +226,15 @@ angular.module("acute.select", [])
                 }
             }
 
-            // Get the object specified on the acute-model attribute
+            // Get the object specified on the ac-model attribute
             $scope.getModelObject = function () {
-                if ($scope.acuteModel === null) {
-                    $scope.acuteModel = $scope.$parent[$scope.parentModelName];
-                    if (typeof $scope.acuteModel !== "object") {
-                        throw "acute-model attribute value must be an object";
+                if ($scope.acModel === null) {
+                    $scope.acModel = $scope.$parent[$scope.parentModelName];
+                    if (typeof $scope.acModel !== "object") {
+                        throw "ac-model attribute value must be an object";
                     }
                 }
-                return $scope.acuteModel;
+                return $scope.acModel;
             }
 
             $scope.setModelValue = function (value) {
@@ -320,14 +320,14 @@ angular.module("acute.select", [])
                 }
             };
 
-            // When clicking on the acute-select-main div
+            // When clicking on the ac-select-main div
             $scope.mainClick = function () {
-                // Close any other acute-select instances
+                // Close any other ac-select instances
                 $scope.sentBroadcast = true;
-                $rootScope.$broadcast("acute-select-close-all");
+                $rootScope.$broadcast("ac-select-close-all");
             };
 
-            $scope.$on("acute-select-close-all", function () {
+            $scope.$on("ac-select-close-all", function () {
                 if (!$scope.sentBroadcast) {
                     $scope.popupVisible = false;
                     safeApply($scope);
@@ -344,7 +344,7 @@ angular.module("acute.select", [])
 
             $scope.getItemClass = function (i) {
                 if ($scope.selectedItem && $scope.items[i].value === $scope.selectedItem.value) {
-                    return "acute-select-highlight";
+                    return "ac-select-highlight";
                 }
                 else {
                     return "";
@@ -534,7 +534,7 @@ angular.module("acute.select", [])
             function deleteKey(event) {
                 if ($scope.settings.allowClear) {
                     var srcElement = angular.element(event.target);
-                    if (srcElement.hasClass('acute-select-text')) {
+                    if (srcElement.hasClass('ac-select-text')) {
                         event.stopPropagation = true;
                     }
                     else {
@@ -617,7 +617,7 @@ angular.module("acute.select", [])
                 // Check up to 10 levels up the DOM tree
                 for (var i = 0; i < 10 && element && !clickedOnPopup; i++) {
                     var elementClasses = element.classList;
-                    if (elementClasses.contains('acute-select-wrapper')) {
+                    if (elementClasses.contains('ac-select-wrapper')) {
                         clickedOnPopup = true;
                     }
                     else {
@@ -634,11 +634,11 @@ angular.module("acute.select", [])
 })
 
 // Directive to set focus to an element when a specified expression is true
-.directive('acuteFocus', function ($timeout, $parse) {
+.directive('acFocus', function ($timeout, $parse) {
     return {
         restrict: "A",
         link: function (scope, element, attributes) {
-            var setFocus = $parse(attributes.acuteFocus);
+            var setFocus = $parse(attributes.acFocus);
             scope.$watch(setFocus, function (value) {
                 if (value === true) {
                     $timeout(function () {
@@ -655,7 +655,8 @@ angular.module("acute.select", [])
     };
 })
 
-// Directive for a scroll container. Set acute-scroll-top to an expression and the div will scroll when it changes
+// Directive for a scroll container. Set the "ac-scroll-to" attribute to an expression and when its value changes,
+// the div will scroll to that position
 .directive('acScrollTo', function () {
     return {
         restrict: "A",

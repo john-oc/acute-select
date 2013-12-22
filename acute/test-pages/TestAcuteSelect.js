@@ -23,7 +23,12 @@ angular.module("acuteSelectTest", ["acute.select", "acute.core.services"])
         safeApply($scope);
     });
 
-    $scope.state = null;
+    $scope.state1 = null;
+    $scope.state2 = null;
+    $scope.state3 = null;
+    $scope.state4 = null;
+    $scope.state5 = null;
+    $scope.state6 = null;
 
     $scope.allStates = [
         { "name": "Alabama", "id": "AL" },
