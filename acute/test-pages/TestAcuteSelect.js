@@ -11,17 +11,15 @@ angular.module("acuteSelectTest", ["acute.select", "acute.core.services"])
       { name: 'yellow', shade: 'light' }
     ];
 
-    $scope.colour = $scope.colours[2]; // red.
+    $scope.message = "Ready.";
 
-    $scope.$watch('colour', function () {
-        if ($scope.colour) {
-            $scope.selectedColour = $scope.colour.name;
-        }
-        else {
-            $scope.selectedColour = "none";
-        }
-        safeApply($scope);
-    });
+    $scope.selectedColour = $scope.colours[2]; // red.
+
+    $scope.colourChanged = function (value) {
+        var colourName = value ? value.name : "none";
+        $scope.message = "ac-change event fired for colour. New colour: " + colourName;
+        $scope.$digest();
+    }
 
     $scope.state1 = null;
     $scope.state2 = null;

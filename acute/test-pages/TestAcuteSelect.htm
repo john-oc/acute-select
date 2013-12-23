@@ -5,7 +5,7 @@
     <!--[if lte IE 8]>
       <script src="/Scripts/json2.js"></script>
     <![endif]-->
-    <script src="../lib/angular.min.1.2.1.js"></script>
+    <script src="../lib/angular.1.2.1.js"></script>
     <script src="../acute.core/acute.core.directives.js"></script>
     <script src="../acute.core/acute.core.services.js"></script>
     <script src="../acute.select/acute.select.js"></script>
@@ -26,9 +26,12 @@
 </head>
 <body>
     <div ng-controller="MainCtrl">
+
+        <p>{{message}}</p>
+
         Basic mode without search<br />
         <!-- N.B. self-closing select results in spurious mark-up! -->
-        <select class="ac-select" ac-model="colour" ac-options="c.name for c in colours" ac-settings="{ showSearchBox: false }"></select>  Colour selected: {{selectedColour}}
+        <select class="ac-select" ac-model="selectedColour" ac-options="c.name for c in colours" ac-settings="{ showSearchBox: false }" ac-change="colourChanged(value)"></select>  Colour selected: {{selectedColour}}
         <br /><br />
 
         Allow custom text<br />

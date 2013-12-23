@@ -15,7 +15,8 @@ angular.module("acute.select", [])
     return {
         restrict: "EAC",
         scope: {
-            "acSettings": "@"
+          "acSettings": "@",
+          "acChange": "&"
         },
         replace: true,
         templateUrl: "/acute.select/acute.select.htm",
@@ -403,6 +404,11 @@ angular.module("acute.select", [])
                         $scope.searchText = "";
                         clearClientFilter();
                     }
+                }
+
+                // Fire acChange function, if specified
+                if (typeof $scope.acChange === 'function') {
+                    $scope.acChange({ value: $scope.selectedItem ? $scope.selectedItem.value : null });
                 }
             }
 
