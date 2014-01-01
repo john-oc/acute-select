@@ -1,14 +1,14 @@
-﻿/// <reference path="../angular.1.0.7.js" />
+﻿/// <reference path="../lib/angular.1.2.1.js" />
 
-//Directive that creates a searchable dropdown list.
+// Directive that creates a searchable dropdown list.
 
-//Associated attributes:-
-//ac-model - use instead of ng-model
-//ac-options - use instead of ng-options.
+// Associated attributes:-
+// ac-model - use instead of ng-model
+// ac-options - use instead of ng-options.
 
-//Example:- <select class="ac-select" ac-model="colour" ac-options="c.name for c in colours"></select>
+// Example:- <select class="ac-select" ac-model="colour" ac-options="c.name for c in colours"></select>
 
-//Note:- ac-options works like ng-options, but does not support option groups
+// Note:- ac-options works like ng-options, but does not support option groups
 
 angular.module("acute.select", [])
 .directive("acSelect", function ($parse) {
@@ -16,7 +16,8 @@ angular.module("acute.select", [])
         restrict: "EAC",
         scope: {
           "acSettings": "@",
-          "acChange": "&"
+          "acChange": "&",
+          "model": "=acModel",
         },
         replace: true,
         templateUrl: "/acute.select/acute.select.htm",
@@ -49,15 +50,12 @@ angular.module("acute.select", [])
             scope.scrollPosition = 0;   // Reported scroll position
             scope.listHeight = 0;
             scope.matchFound = false;
-            scope.acModel = null;
 
             // Check that ac-options and ac-model values are set
             var acOptions = attrs.acOptions;
             if (acOptions === undefined || attrs.acModel === undefined) {
                 throw "ac-options and ac-model attributes must be set";
             }
-
-            scope.parentModelName = attrs.acModel;
 
             if (attrs.acSettings != undefined) {
                 scope.acSettings = scope.$eval(attrs.acSettings);
@@ -106,7 +104,7 @@ angular.module("acute.select", [])
                     // Get the data from the parent scope
                     var dataItems = scope.$parent.$eval(dataName);
                     // Create dropdown items
-                    scope.loadItems(dataItems, scope.acModel);
+                    scope.loadItems(dataItems, scope.model);
                     // Save selected item
                     scope.confirmedItem = angular.copy(scope.selectedItem);
                     scope.allDataLoaded = true;
@@ -227,28 +225,6 @@ angular.module("acute.select", [])
                 }
             }
 
-            // Get the object specified on the ac-model attribute
-            $scope.getModelObject = function () {
-                if ($scope.acModel === null) {
-                    $scope.acModel = $scope.$parent[$scope.parentModelName];
-                    if (typeof $scope.acModel !== "object") {
-                        throw "ac-model attribute value must be an object";
-                    }
-                }
-                return $scope.acModel;
-            }
-
-            $scope.setModelValue = function (value) {
-                var parent = $scope.$parent;
-                while (parent) {
-                    if (parent.hasOwnProperty($scope.parentModelName)) {
-                        parent[$scope.parentModelName] = value;
-                        break;
-                    }
-                    parent = parent.$parent;
-                }
-            }
-
             // Callback function to receive async data
             $scope.dataCallback = function (data, matchingItemTotal) {
 
@@ -261,7 +237,8 @@ angular.module("acute.select", [])
                     selectedDataItem = $scope.selectedItem.value;
                 }
                 else {
-                    selectedDataItem = $scope.getModelObject();
+                    //selectedDataItem = $scope.getModelObject();
+                    selectedDataItem = $scope.model;
                 }
 
                 $scope.loadItems(data, selectedDataItem);
@@ -385,7 +362,7 @@ angular.module("acute.select", [])
                 var close = false;
                 if ($scope.selectedItem) {
                     $scope.confirmedItem = angular.copy($scope.selectedItem);
-                    $scope.setModelValue($scope.selectedItem.value);
+                    $scope.model = $scope.selectedItem.value;
                     $scope.comboText = $scope.selectedItem.text;
                     close = true
                 }
@@ -421,7 +398,7 @@ angular.module("acute.select", [])
                         // Create new data item
                         dataItem = {};
                         dataItem[$scope.textField] = customText;
-                        $scope.setModelValue(dataItem);
+                        $scope.model = dataItem;
                         $scope.selectedItem = { "text": customText, "value": dataItem, "index": -1 };
                         added = true;
                     }
@@ -551,7 +528,7 @@ angular.module("acute.select", [])
 
             function clearSelection() {
                 $scope.selectedItem = null;
-                $scope.setModelValue(null);
+                $scope.model = null;
                 $scope.scrollTo = 0;
                 $scope.comboText = "";
             }

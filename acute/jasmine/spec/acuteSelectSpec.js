@@ -1,19 +1,32 @@
 ﻿/// <reference path="../lib/jasmine-1.3.0/jasmine.js" />
 /// <reference path="../../lib/angular.1.2.1.js" />
 /// <reference path="../../lib/angular-mocks.1.2.1.js" />
+/// <reference path="../../lib/jquery-1.8.2.intellisense.js" />
 
 describe("Testing Acute Select Directive", function () {
     var $scope,
-        $compile;
+        $compile,
+        $timeout;
 
     beforeEach(function () {
         //load the module
         module('acute.select');
 
-        inject(function (_$compile_, $rootScope, $templateCache) {
+        inject(function (_$compile_, $rootScope, $templateCache, _$timeout_) {
 
             // Create a scope
             $scope = $rootScope.$new();
+
+            $timeout = _$timeout_;
+
+            // Data for the select
+            $scope.colours = [
+              { name: 'black', shade: 'dark' },
+              { name: 'white', shade: 'light' },
+              { name: 'red', shade: 'dark' },
+              { name: 'blue', shade: 'dark' },
+              { name: 'yellow', shade: 'light' }
+            ];
 
             $compile = _$compile_;
 
@@ -32,20 +45,57 @@ describe("Testing Acute Select Directive", function () {
 
     it("Creates a UL dropdown and selects 'Red' when 'r' is entered in the search box", function () {
 
-        // Data for the select
-        $scope.colours = [
-          { name: 'black', shade: 'dark' },
-          { name: 'white', shade: 'light' },
-          { name: 'red', shade: 'dark' },
-          { name: 'blue', shade: 'dark' },
-          { name: 'yellow', shade: 'light' }
-        ];
-
-        $scope.selectedColour = $scope.colours[2]; // red
+        $scope.selectedColour = $scope.colours[0];
 
         // Set our view html.
         var html = '<select class="ac-select" ac-model="selectedColour" ac-options="selectedColour.name for colour in colours"></select>';
+        var element = compileHTML(html);
+        
+        var ul = element.find("UL");
+        expect(ul.length).toEqual(1);
+        var items = element.find("LI");
+        expect(items.length).toEqual(5);
 
+        var dropdownDiv = element.find(".ac-select-popup");
+        expect(dropdownDiv.length).toEqual(1);
+        var searchBox = dropdownDiv.find("INPUT");
+        expect(searchBox.length).toEqual(1);
+        sendKey("r", searchBox);
+
+        $timeout(function () {
+            sendKey(13, searchBox);
+            expect(typeof $scope.selectedColour).toBe("object");
+            expect($scope.selectedColour.name).toBe("red");
+        }, 500);
+
+    });
+
+    it("Correctly updates the object specified by ac-model when the directive is used within an ng-switch directive.", function () {
+
+        $scope.selectedColour = $scope.colours[2]; // red
+        $scope.selectType = "basic";
+
+        // Set our view html.
+        var html =
+        '<div ng-switch="selectType">' +
+            '<div ng-switch-when="basic">' +
+                '<select class="ac-select" ac-model="selectedColour" ac-options="selectedColour.name for colour in colours"></select>' +
+            '</div>' +
+        '</div>';
+
+        var element = compileHTML(html);
+        var dropdownDiv = element.find(".ac-select-popup");
+        var searchBox = dropdownDiv.find("INPUT");
+
+        sendKey("y", searchBox);
+
+        $timeout(function () {
+            sendKey(13, searchBox);
+            expect($scope.selectedColour.name).toBe("yellow");
+        }, 500);
+    });
+
+    function compileHTML(html) {
         // Get the jqLite or jQuery element
         var element = angular.element(html);
 
@@ -58,23 +108,21 @@ describe("Testing Acute Select Directive", function () {
         // Call digest on the scope!
         $scope.$digest();
 
-        var ul = element.find("UL");
-        expect(ul.length).toEqual(1);
-        var items = element.find("LI");
-        expect(items.length).toEqual(5);
+        return element;
+    }
 
-        var table = element.find("TABLE");
-        table.click();
-        $scope.$digest();
+    function sendClick(element) {
+        var e = $.Event("click");
+        element.trigger(e);
+    }
 
-        var dropdownDiv = element.find(".ac-select-popup");
-        expect(dropdownDiv.length).toEqual(1);
-        var searchBox = dropdownDiv.find("INPUT");
-        expect(searchBox.length).toEqual(1);
-        searchBox.text("r");
-        $scope.$digest();
-        expect(typeof $scope.selectedColour).toBe("object");
-        expect($scope.selectedColour.name).toBe("red");
-    });
+    function sendKey(key, element) {
+        var keyCode = key;
+        if (typeof key === "string") {
+            keyCode = key.charCodeAt(0);
+        }
+        var e = $.Event("keydown", { keyCode: keyCode });
+        element.trigger(e);
+    }
 });
 

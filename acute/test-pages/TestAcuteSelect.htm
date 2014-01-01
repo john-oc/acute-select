@@ -29,6 +29,17 @@
 
         <p>{{message}}</p>
 
+
+        Inside an ng-switch<br />
+        <div ng-switch="ngSwitchValue">
+            <div ng-switch-when="value">
+                <ac-select class="stateList" ac-model="state2" ac-options="s.name for s in getAllStates()" 
+                    ac-settings="{loadOnOpen: true, comboMode:false, minWidth: '300px' }"></ac-select><br/>State selected: {{state2.name}}
+            </div>
+        </div>
+        <br /><br />
+
+
         Basic mode without search<br />
         <!-- N.B. self-closing select results in spurious mark-up! -->
         <select class="ac-select" ac-model="selectedColour" ac-options="c.name for c in colours" ac-settings="{ showSearchBox: false }" ac-change="colourChanged(value)"></select>  Colour selected: {{selectedColour}}
@@ -67,6 +78,12 @@
         <select class="ac-select stateList" ac-model="state6" ac-options="s.name for s in getStatesPaged()" 
             ac-settings="{noItemsText:'Enter 1 or more characters', minWidth: '300px', itemsInView: 10, minSearchLength: 0, loadOnOpen: true }"></select><br/>State selected: {{state6.name}}
         <br /><br />
+
+        Search mode with load on open - as a custom element<br />
+        <ac-select class="stateList" ac-model="state2" ac-options="s.name for s in getAllStates()" 
+            ac-settings="{loadOnOpen: true, comboMode:false, minWidth: '300px' }"></ac-select><br/>State selected: {{state2.name}}
+        <br /><br />
+
 
         Search mode with load on open - as a custom element<br />
         <ac-select class="stateList" ac-model="state2" ac-options="s.name for s in getAllStates()" 

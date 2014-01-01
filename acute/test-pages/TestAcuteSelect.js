@@ -110,4 +110,6 @@ angular.module("acuteSelectTest", ["acute.select", "acute.core.services"])
             $timeout(function () { callback(data, filteredData.length); }, 400);
         }
     };
+
+    $scope.ngSwitchValue = "value";
 });
