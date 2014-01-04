@@ -33,7 +33,7 @@
                 </tr>
             </table>
         </div>
-        <div class="ac-select-no-items" ng-show="items.length==0">{{settings.noItemsText}}</div>
+        <div class="ac-select-no-items" ng-if="items.length==0">{{settings.noItemsText}}</div>
         <div class="ac-select-list" ng-style='{ "height": (listHeight + 6) + "px" }' ac-scroll-to="scrollTo" ac-on-scroll="listScrolled()">
             <ul>
                 <li id="{{item.id}}" ng-model="selectedItem" ng-repeat="item in items | filter: search" 

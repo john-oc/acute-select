@@ -1,7 +1,13 @@
 ﻿/// <reference path="../angular.1.0.8.js" />
 
 angular.module("acuteSelectTest", ["acute.select", "acute.core.services"])
-.controller("MainCtrl", function ($scope, $filter, $window, $timeout, safeApply) {
+
+.run(function (acuteSelectService) {
+
+    // Use the acute select service to set the template path for all instances
+    acuteSelectService.updateSetting("templatePath", "acute.select/template");
+
+}).controller("MainCtrl", function ($scope, $filter, $window, $timeout, safeApply) {
 
     $scope.colours = [
       { name: 'black', shade: 'dark' },
@@ -10,6 +16,8 @@ angular.module("acuteSelectTest", ["acute.select", "acute.core.services"])
       { name: 'blue', shade: 'dark' },
       { name: 'yellow', shade: 'light' }
     ];
+
+    $scope.things = [];
 
     $scope.message = "Ready.";
 

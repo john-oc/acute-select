@@ -11,33 +11,20 @@
 // Note:- ac-options works like ng-options, but does not support option groups
 
 angular.module("acute.select", [])
-.directive("acSelect", function ($parse) {
+.directive("acSelect", function ($parse, acuteSelectService) {
+    var defaultSettings = acuteSelectService.getSettings();
     return {
         restrict: "EAC",
         scope: {
-          "acSettings": "@",
-          "acChange": "&",
-          "model": "=acModel",
+            "acSettings": "@",
+            "acChange": "&",
+            "model": "=acModel",
         },
         replace: true,
-        templateUrl: "/acute.select/acute.select.htm",
+        templateUrl: defaultSettings.templatePath + "acute.select.htm",
         link: function (scope, element, attrs) {
-            // Default settings
-            scope.settings = {
-                "noItemsText": "No items found.",
-                "itemHeight": 24,
-                "itemsInView": 15,
-                "minWidth": "100px",
-                "showSearchBox": true,
-                "comboMode": false,
-                "loadOnCreate": false,
-                "loadOnOpen": false,      // If true, load function will be called when dropdown opens, i.e. before any search text is entered
-                "initialText": null,      // Initial text to show if data is not loaded immediately
-                "allowCustomText": false,
-                "minSearchLength": 1,
-                "filterType": "start",    // or "contains"
-                "allowClear": true
-            };
+
+            scope.settings = defaultSettings;
 
             scope.searchText = "";
             scope.longestText = "";
@@ -710,4 +697,40 @@ angular.module("acute.select", [])
             }
         }
     }
-} ])
+}])
+
+// Service to allow host pages to change settings for all instances (in their module.run function)
+.factory('acuteSelectService', function () {
+
+    var settings = {
+        "templatePath": "/acute.select/",
+        "noItemsText": "No items found.",
+        "itemHeight": 24,
+        "itemsInView": 15,
+        "minWidth": "100px",
+        "showSearchBox": true,
+        "comboMode": false,
+        "loadOnCreate": false,
+        "loadOnOpen": false,      // If true, load function will be called when dropdown opens, i.e. before any search text is entered
+        "initialText": null,      // Initial text to show if data is not loaded immediately
+        "allowCustomText": false,
+        "minSearchLength": 1,
+        "filterType": "start",    // or "contains"
+        "allowClear": true
+    };
+
+    return {
+        getSettings: function () {
+            // Add trailing "/" to template path if not present
+            var len = settings.templatePath.length;
+            if (len > 0 && settings.templatePath.substr(len - 1, 1) !== "/") {
+                settings.templatePath += "/";
+            }
+            return settings;
+        },
+
+        updateSetting: function (settingName, value) {
+            settings[settingName] = value;
+        }
+    };
+});
