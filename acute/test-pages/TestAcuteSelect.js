@@ -5,7 +5,7 @@ angular.module("acuteSelectTest", ["acute.select", "acute.core.services"])
 .run(function (acuteSelectService) {
 
     // Use the acute select service to set the template path for all instances
-    acuteSelectService.updateSetting("templatePath", "acute.select/template");
+    acuteSelectService.updateSetting("templatePath", "/acute.select/template");
 
 }).controller("MainCtrl", function ($scope, $filter, $window, $timeout, safeApply) {
 

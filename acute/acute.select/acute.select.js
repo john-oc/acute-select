@@ -24,7 +24,7 @@ angular.module("acute.select", [])
         templateUrl: defaultSettings.templatePath + "acute.select.htm",
         link: function (scope, element, attrs) {
 
-            scope.settings = defaultSettings;
+            scope.settings = acuteSelectService.getSettings();
 
             scope.searchText = "";
             scope.longestText = "";
@@ -702,11 +702,11 @@ angular.module("acute.select", [])
 // Service to allow host pages to change settings for all instances (in their module.run function)
 .factory('acuteSelectService', function () {
 
-    var settings = {
+    var defaultSettings = {
         "templatePath": "/acute.select/",
         "noItemsText": "No items found.",
         "itemHeight": 24,
-        "itemsInView": 15,
+        "itemsInView": 10,
         "minWidth": "100px",
         "showSearchBox": true,
         "comboMode": false,
@@ -715,22 +715,23 @@ angular.module("acute.select", [])
         "initialText": null,      // Initial text to show if data is not loaded immediately
         "allowCustomText": false,
         "minSearchLength": 1,
-        "filterType": "start",    // or "contains"
+        "filterType": "contains",    // or "start"
         "allowClear": true
     };
 
     return {
         getSettings: function () {
             // Add trailing "/" to template path if not present
-            var len = settings.templatePath.length;
-            if (len > 0 && settings.templatePath.substr(len - 1, 1) !== "/") {
-                settings.templatePath += "/";
+            var len = defaultSettings.templatePath.length;
+            if (len > 0 && defaultSettings.templatePath.substr(len - 1, 1) !== "/") {
+                defaultSettings.templatePath += "/";
             }
-            return settings;
+            return angular.copy(defaultSettings);
         },
-
         updateSetting: function (settingName, value) {
-            settings[settingName] = value;
+            if (defaultSettings.hasOwnProperty(settingName)) {
+                defaultSettings[settingName] = value;
+            }
         }
     };
 });
