@@ -8,6 +8,22 @@ describe("Testing Acute Select Directive", function () {
         $compile,
         $timeout;
 
+    var keyCodes = {
+        'backspace': 8,
+        'tab': 9,
+        'enter': 13,
+        'escape': 27,
+        'pageUp': 33,
+        'pageDown': 34,
+        'end': 35,
+        'home': 36,
+        'leftArrow': 37,
+        'upArrow': 38,
+        'rightArrow': 39,
+        'downArrow': 40,
+        'del': 46
+    };
+
     beforeEach(function () {
         //load the module
         module('acute.select');
@@ -37,7 +53,7 @@ describe("Testing Acute Select Directive", function () {
             };
 
             // Using 'false' as the third parameter to open() makes the operation synchronous.
-            req.open("get", "../acute.select/acute.select.htm", false);
+            req.open("get", "../acute.select/template/acute.select.htm", false);
             req.send();
             $templateCache.put("/acute.select/acute.select.htm", directiveTemplate);
         });
@@ -66,6 +82,13 @@ describe("Testing Acute Select Directive", function () {
             sendKey(13, searchBox);
             expect(typeof $scope.selectedColour).toBe("object");
             expect($scope.selectedColour.name).toBe("red");
+
+            $timeout(function () {
+                // Delete should clear the selection
+                sendKey(keyCodes.del, searchBox);
+                expect($scope.selectedColour).toBe(null);
+            }, 500);
+
         }, 500);
 
     });
@@ -94,6 +117,22 @@ describe("Testing Acute Select Directive", function () {
             expect($scope.selectedColour.name).toBe("yellow");
         }, 500);
     });
+
+    it("Displays the text value from the ac-model object when loadOnCreate and loadOnOpen are false.", function () {
+
+        $scope.selectedColour = $scope.colours[0];  // black
+
+        // Set our view html.
+        var html = '<select class="ac-select" ac-model="selectedColour"' +
+            ' ac-settings="{ loadOnCreate: false, loadOnOpen: false }" ac-options="selectedColour.name for colour in colours"></select>';
+        var element = compileHTML(html);
+
+        var displayText = element.find(".ac-select-display").text().trim();
+        expect(displayText).toBe("black");
+
+    });
+
+
 
     function compileHTML(html) {
         // Get the jqLite or jQuery element

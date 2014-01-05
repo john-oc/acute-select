@@ -78,9 +78,11 @@ angular.module("acute.select", [])
                             // Load initial data (args are callback function, search text and item offset)
                             scope.dataFunction(scope.dataCallback, "", 0);
                         }
-                        else if (typeof scope.settings.initialText === 'string') {
-                            scope.confirmedItem = { "text": scope.settings.initialText, "value": "" };
-                            scope.comboText = scope.settings.initialText;
+                        else if (scope.model && scope.model[scope.textField]) {
+                            scope.confirmedItem = scope.selectedItem = scope.getItemFromDataItem(scope.model, 0);
+                            if (scope.confirmedItem) {
+                                scope.comboText = scope.confirmedItem.text;
+                            }
                         }
                     }
                     else {
@@ -106,18 +108,12 @@ angular.module("acute.select", [])
 
             // Create dropdown items based on the source data items
             $scope.loadItems = function (dataItems, selectedDataItem) {
-                var itemCount, itemIndex, itemID, item;
+                var itemCount, itemIndex, item;
                 if (angular.isArray(dataItems)) {
                     itemCount = $scope.items.length;
                     angular.forEach(dataItems, function (dataItem, index) {
                         itemIndex = itemCount + index;
-                        itemID = "item" + $scope.$id + "_" + itemIndex;
-                        if ($scope.textField === null) {
-                            item = { "text": dataItem, "value": dataItem, "index": itemIndex };
-                        }
-                        else {
-                            item = { "text": dataItem[$scope.textField], "value": dataItem, "index": itemIndex };
-                        }
+                        item = $scope.getItemFromDataItem(dataItem, itemIndex);
                         $scope.items.push(item);
                         if (dataItem === selectedDataItem) {
                             $scope.selectedItem = item;
@@ -130,6 +126,19 @@ angular.module("acute.select", [])
                     angular.copy($scope.items, $scope.allItems);
                     $scope.setListHeight();
                 }
+            };
+
+            $scope.getItemFromDataItem = function(dataItem, itemIndex) {
+                var item = null;
+                if (dataItem !== null){
+                    if ($scope.textField === null) {
+                        item = { "text": dataItem, "value": dataItem, "index": itemIndex };
+                    }
+                    else if (dataItem[$scope.textField]) {
+                        item = { "text": dataItem[$scope.textField], "value": dataItem, "index": itemIndex };
+                    }
+                }
+                return item;
             };
 
             // Set height of list according to number of visible items
@@ -149,6 +158,7 @@ angular.module("acute.select", [])
             // Close all instances when user clicks elsewhere
             $window.onclick = function (event) {
                 closeWhenClickingElsewhere(event, function () {
+                    $scope.sentBroadcast = false;
                     $rootScope.$broadcast("ac-select-close-all");
                 });
             };
@@ -160,9 +170,11 @@ angular.module("acute.select", [])
                     handleCharCodes(event);
                 }
 
-                if ($scope.popupVisible) {
+                var keyCode = event.which || event.keyCode;
+
+                if ($scope.popupVisible || keyCode === navKey.del) {
                     var stopPropagation = true;
-                    switch (event.which || event.keyCode) {
+                    switch (keyCode) {
                         case navKey.downArrow:
                             downArrowKey();
                             break;
@@ -261,6 +273,7 @@ angular.module("acute.select", [])
             $scope.comboTextChange = function () {
                 $scope.popupVisible = true;
                 $scope.ensureDataLoaded();
+                $scope.searchText = $scope.comboText;
                 filterData($scope.comboText);
             };
 
@@ -296,6 +309,11 @@ angular.module("acute.select", [])
                 if (!$scope.sentBroadcast) {
                     $scope.popupVisible = false;
                     safeApply($scope);
+                    // If clear is not allowed and we're in combo mode
+                    if (!$scope.settings.allowClear && $scope.settings.comboMode && $scope.selectedItem) {
+                        // Update the combo text to reflect the currently selected item
+                        $scope.comboText = $scope.confirmedItem.text;
+                    }
                 }
                 else {
                     $scope.sentBroadcast = false;
@@ -338,8 +356,7 @@ angular.module("acute.select", [])
                 if (!$scope.loading && $scope.showLoadingMessage) {
                     $scope.loading = true;
                     var offSet = $scope.items.length;
-                    var searchText = $scope.settings.comboMode ? $scope.comboText : $scope.searchText;
-                    $scope.dataFunction($scope.dataCallback, searchText, offSet);
+                    $scope.dataFunction($scope.dataCallback, $scope.searchText, offSet);
                 }
             }
 
@@ -380,13 +397,15 @@ angular.module("acute.select", [])
                 var customText, dataItem;
                 var added = false;
                 if ($scope.settings.allowCustomText && !$scope.matchFound) {
-                    customText = $scope.settings.comboMode ? $scope.comboText : $scope.searchText;
+                    customText = $scope.searchText;
                     if (customText.length > 0) {
                         // Create new data item
                         dataItem = {};
                         dataItem[$scope.textField] = customText;
                         $scope.model = dataItem;
-                        $scope.selectedItem = { "text": customText, "value": dataItem, "index": -1 };
+                        $scope.confirmedItem = $scope.selectedItem = { "text": customText, "value": dataItem, "index": -1 };
+                        $scope.items.push($scope.selectedItem);
+                        $scope.allItems.push($scope.selectedItem);
                         added = true;
                     }
                 }
@@ -432,7 +451,7 @@ angular.module("acute.select", [])
                         }
                     }
                     else {
-                        if ($scope.comboMode) {
+                        if ($scope.settings.comboMode) {
                             $scope.comboFocus = true;
                         }
                         else {
@@ -515,6 +534,7 @@ angular.module("acute.select", [])
 
             function clearSelection() {
                 $scope.selectedItem = null;
+                $scope.confirmedItem = null;
                 $scope.model = null;
                 $scope.scrollTo = 0;
                 $scope.comboText = "";
@@ -531,17 +551,17 @@ angular.module("acute.select", [])
                 }
             }
 
-            function filterData(searchText) {
+            function filterData() {
                 $scope.showLoadingMessage = false;
-                $scope.selectedItem = null;
+                //$scope.selectedItem = null;
                 if ($scope.allDataLoaded) {
                     if ($scope.settings.filterType == "contains") {
-                        $scope.items = $filter("filter")($scope.allItems, searchText);
+                        $scope.items = $filter("filter")($scope.allItems, $scope.searchText);
                     }
                     else {
                         $scope.items = $filter("filter")($scope.allItems, function (item) {
                             // Check for match at start of items only
-                            return item.text.substr(0, searchText.length).toLowerCase() === searchText.toLowerCase();
+                            return item.text.substr(0, $scope.searchText.length).toLowerCase() === $scope.searchText.toLowerCase();
                         });
                     }
                     // Update indexes
@@ -553,8 +573,8 @@ angular.module("acute.select", [])
                     // Pass search text to data function (if it takes 2 or more arguments)
                     $scope.items = [];
                     if ($scope.dataFunction && $scope.dataFunction.length >= 2
-                        && searchText.length >= $scope.settings.minSearchLength) {
-                        $scope.dataFunction($scope.dataCallback, searchText, 0);
+                        && $scope.searchText.length >= $scope.settings.minSearchLength) {
+                        $scope.dataFunction($scope.dataCallback, $scope.searchText, 0);
                     }
                 }
 
@@ -712,7 +732,6 @@ angular.module("acute.select", [])
         "comboMode": false,
         "loadOnCreate": false,
         "loadOnOpen": false,      // If true, load function will be called when dropdown opens, i.e. before any search text is entered
-        "initialText": null,      // Initial text to show if data is not loaded immediately
         "allowCustomText": false,
         "minSearchLength": 1,
         "filterType": "contains",    // or "start"

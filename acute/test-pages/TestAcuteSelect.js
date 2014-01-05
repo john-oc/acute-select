@@ -26,15 +26,7 @@ angular.module("acuteSelectTest", ["acute.select", "acute.core.services"])
     $scope.colourChanged = function (value) {
         var colourName = value ? value.name : "none";
         $scope.message = "ac-change event fired for colour. New colour: " + colourName;
-        $scope.$digest();
     }
-
-    $scope.state1 = null;
-    $scope.state2 = null;
-    $scope.state3 = null;
-    $scope.state4 = null;
-    $scope.state5 = null;
-    $scope.state6 = null;
 
     $scope.allStates = [
         { "name": "Alabama", "id": "AL" },
@@ -89,6 +81,15 @@ angular.module("acuteSelectTest", ["acute.select", "acute.core.services"])
         { "name": "Wisconsin", "id": "WI" },
         { "name": "Wyoming", "id": "WY" }
     ];
+
+    $scope.state1 = null;
+    $scope.state2 = null;
+    $scope.state3 = null;
+    $scope.state4 = $scope.allStates[4];
+    $scope.state5 = null;
+    $scope.state6 = null;
+    $scope.state7 = $scope.allStates[22];
+    $scope.state8 = null;
 
     $scope.getStates = function (callback, searchText) {
         //var data = $filter("filter")($scope.allStates, searchText);

@@ -82,6 +82,7 @@ div.ac-select-popup {
 div.ac-select-list {
     overflow: auto;
     margin-bottom: 1px;
+    border-top: 1px solid #d0d0d0;
 }
 
 div.ac-select-no-items {
@@ -102,7 +103,6 @@ div.ac-select-no-items {
 
 .ac-select-search-wrapper {
     padding: 0 6px;
-    border-bottom: 1px solid #d0d0d0;
     padding-bottom: 2px;
     margin-left: -2px;
     padding-left: 6px;

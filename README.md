@@ -1,6 +1,6 @@
 # acute-select #
 
-**acute-select** is a dropdown select component for AngularJS, with no external dependencies other than angular itself.
+**acute-select** is a dropdown select component for [AngularJS](http://angularjs.org/), with no external dependencies other than Angular itself.
 
 **[Live Demo](http://john-oc.github.io/)** 
 
@@ -27,16 +27,22 @@ In the above example *colours* can be replaced with a function *colours()* to lo
 
 **Default values:-**
 
-	{
-	  "showSearchBox": true,
-	  "comboMode": false,       // If true, the search textbox is shown in-line, instead in the dropdown
-	  "loadOnCreate": false,    
-	  "loadOnOpen": false,      // Load function will be called when the dropdown opens.
-	  "allowCustomText": false, // Will values not in the list will be accepted.
-	  "minSearchLength": 1,
-	  "filterType": "start",    // or "contains"
-	  "allowClear": true		// 
-	}
+    {
+        "templatePath": "/acute.select/",
+        "noItemsText": "No items found.",
+        "itemHeight": 24,
+        "itemsInView": 10,
+        "minWidth": "100px",
+        "showSearchBox": true,
+        "comboMode": false,
+        "loadOnCreate": false,
+        "loadOnOpen": false,      
+        "initialText": null,
+        "allowCustomText": false,
+        "minSearchLength": 1,
+        "filterType": "contains",    // or "start"
+        "allowClear": true
+    };
 
 **Note:-** if both *loadOnCreate* and *loadOnOpen* are *false*, the list will only be populated when search text is entered.
 
@@ -66,3 +72,17 @@ JS:-
 
 
 As an alternative to the separate search box, acute-select can also act as a combined textbox and dropdown list.
+
+See the **[demo page](http://john-oc.github.io/)** for an example.
+
+### Global settings ###
+
+If required, settings can be updated for all instances on a page, by using the acuteSelectService in the application "run" function, as in this example:-
+
+	angular.module("myModule", ["acute.select"])
+	.run(function (acuteSelectService) {
+	    // Set the template path for all instances
+	    acuteSelectService.updateSetting("templatePath", "/js/templates");
+	})
+
+**John O'Connor**
