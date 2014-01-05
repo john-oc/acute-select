@@ -1,6 +1,8 @@
 # acute-select #
 
-**acute-select** is a dropdown select component for AngularJS. It has no external dependencies other than angular and is simple to use. 
+**acute-select** is a dropdown select component for AngularJS, with no external dependencies other than angular itself.
+
+**[Live Demo](http://john-oc.github.io/)** 
 
 ## Features:- ##
 
