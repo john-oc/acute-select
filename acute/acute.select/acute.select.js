@@ -18,6 +18,7 @@ angular.module("acute.select", [])
         scope: {
             "acSettings": "@",
             "acChange": "&",
+            "keyField": "@acKey",
             "model": "=acModel",
         },
         replace: true,
@@ -108,14 +109,14 @@ angular.module("acute.select", [])
 
             // Create dropdown items based on the source data items
             $scope.loadItems = function (dataItems, selectedDataItem) {
-                var itemCount, itemIndex, item;
+                var itemCount, itemIndex, item, key = $scope.keyField;
                 if (angular.isArray(dataItems)) {
                     itemCount = $scope.items.length;
                     angular.forEach(dataItems, function (dataItem, index) {
                         itemIndex = itemCount + index;
                         item = $scope.getItemFromDataItem(dataItem, itemIndex);
                         $scope.items.push(item);
-                        if (dataItem === selectedDataItem) {
+                        if (dataItem === selectedDataItem || (key != "" && dataItem[key] === selectedDataItem[key])) {
                             $scope.selectedItem = item;
                             $scope.confirmedItem = angular.copy($scope.selectedItem);
                         }

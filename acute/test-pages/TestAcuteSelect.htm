@@ -58,6 +58,11 @@
             ac-settings="{loadOnCreate: true, comboMode:false, minWidth: '300px' }"></select><br/>State selected: {{state1.name}}
         <br /><br />
 
+        Search mode with load when created and selecting by key<br />
+        <select class="ac-select stateList" ac-model="independentState" ac-options="s.name for s in getAllStates()" ac-key="id" 
+            ac-settings="{loadOnCreate: true, comboMode:false, minWidth: '300px' }"></select><br/>State selected: {{independentState.name}}
+        <br /><br />
+
         Search mode with load on open<br />
         <select class="ac-select stateList" ac-model="state2" ac-options="s.name for s in getAllStates()" 
             ac-settings="{loadOnOpen: true, comboMode:false, minWidth: '300px' }"></select><br/>State selected: {{state2.name}}

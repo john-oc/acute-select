@@ -28,6 +28,8 @@ angular.module("acuteSelectTest", ["acute.select", "acute.core.services"])
         $scope.message = "ac-change event fired for colour. New colour: " + colourName;
     }
 
+    $scope.independentState = { "name": "Delaware", "id": "DE" };
+
     $scope.allStates = [
         { "name": "Alabama", "id": "AL" },
         { "name": "Alaska", "id": "AK" },

@@ -48,7 +48,7 @@ In the above example *colours* can be replaced with a function *colours()* to lo
 
 Settings are specified using the *ac-settings* attribute.
 
-### Load on demand example ###
+### Load on demand ###
 
 In this example, when the user opens the dropdown, the ac-select directive calls the *getStates* function. It passes in a callback function for the app script to return the data. As with a standard angular select, the data can be an array of objects, or simply an array of strings.
 
@@ -70,10 +70,30 @@ JS:-
         callback($scope.allStates);
     };
 
+###Combo Mode###
 
-As an alternative to the separate search box, acute-select can also act as a combined textbox and dropdown list.
+As an alternative to the separate search box, acute-select can also act as a combined textbox and dropdown list. If the allowCustomText option is set, this will allow a user to enter text that is not in the list.
 
 See the **[demo page](http://john-oc.github.io/)** for an example.
+
+### ac-key attribute ###
+
+The ac-key attribute allows you to specify a property name which will be used to match the ac-model object against the data array.
+
+One shortcoming of the standard angular select directive is that when bound to an array of objects, the initial model value must be one of those objects in order for it to be initially selected. An object with the same properties and values is not sufficient. This can be awkward when the current value is delivered to the client separately from the array of values for the list.
+
+E.g. consider the following example, using the same list of US states shown above:-
+
+	$scope.currentState = { "name": "Alaska", "id": "AL" };
+
+Then suppose we define a standard select as follows:-
+
+	<select ng-model="currentState" ng-options="state.name for state in states"></select>
+
+You would expect "Alaska" to be initially selected, but this won't happen, because currentState isn't the
+same copy of the Alaska object as the one in the array. You would avoid this problem with acute select as follows:-
+
+	<ac-select ac-model="currentState" ac-options="state.name for state in states" ac-key="id"></select>
 
 ### Global settings ###
 
