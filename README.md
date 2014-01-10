@@ -91,7 +91,9 @@ Then suppose we define a standard select as follows:-
 	<select ng-model="currentState" ng-options="state.name for state in states"></select>
 
 You would expect "Alaska" to be initially selected, but this won't happen, because currentState isn't the
-same copy of the Alaska object as the one in the array. You would avoid this problem with acute select as follows:-
+same copy of the Alaska object as the one in the array. There is a workaround, which is to convert the array of states to a single object, with the ids as keys, then use the select directives (key, value) syntax, but it's not very intuitive.
+
+With the acute select directive you can avoid this problem altogether by simply setting ac-key to 'id':-
 
 	<ac-select ac-model="currentState" ac-options="state.name for state in states" ac-key="id"></select>
 
