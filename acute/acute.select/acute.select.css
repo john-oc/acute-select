@@ -76,7 +76,7 @@ div.ac-select-popup {
     background-color: white;
     padding-top: 2px;
     padding-left:2px;
-    /*padding-bottom: 2px;*/
+    width: 100%;
 }
 
 div.ac-select-list {

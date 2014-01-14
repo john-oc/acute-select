@@ -116,9 +116,11 @@ angular.module("acute.select", [])
                         itemIndex = itemCount + index;
                         item = $scope.getItemFromDataItem(dataItem, itemIndex);
                         $scope.items.push(item);
-                        if (dataItem === selectedDataItem || (key != "" && dataItem[key] === selectedDataItem[key])) {
+                        if (dataItem === selectedDataItem || (key && key != "" && dataItem[key] == selectedDataItem[key])) {
                             $scope.selectedItem = item;
                             $scope.confirmedItem = angular.copy($scope.selectedItem);
+                            $scope.model = $scope.selectedItem.value;
+                            $scope.comboText = $scope.selectedItem.text;
                         }
                         if (item.text.length > $scope.longestText.length) {
                             $scope.longestText = item.text;

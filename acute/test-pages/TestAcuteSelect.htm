@@ -3,14 +3,15 @@
 <head>
     <title></title>
     <!--[if lte IE 8]>
-      <script src="/Scripts/json2.js"></script>
+      <script type="text/javascript" src="/Scripts/json2.js"></script>
+        document.createElement('ac-select');
+      </script>
     <![endif]-->
-    <script src="../lib/angular.1.2.1.js"></script>
-    <script src="../acute.core/acute.core.directives.js"></script>
-    <script src="../acute.core/acute.core.services.js"></script>
-    <script src="../acute.select/acute.select.js"></script>
+
+    <script type="text/javascript" src="../lib/angular.1.2.1.js"></script>
+    <script type="text/javascript" src="../acute.select/acute.select.js"></script>
     <link href="../acute.select/acute.select.css" rel="stylesheet" />
-    <script src="TestAcuteSelect.js"></script>
+    <script type="text/javascript" src="TestAcuteSelect.js"></script>
     <style>
         body {
             padding: 10px;
@@ -24,13 +25,13 @@
         }
     </style>
 </head>
-<body ng-cloak>
+<body>
     <div ng-controller="MainCtrl">
 
         <p>{{message}}</p>
 
         Basic mode without search<br />
-        <!-- N.B. self-closing select results in spurious mark-up! -->
+        <!-- N.B. don't use self-closing select as this results in spurious mark-up! -->
         <select class="ac-select" ac-model="selectedColour" ac-options="c.name for c in colours" 
             ac-settings="{ showSearchBox: false }" ac-change="colourChanged(value)"></select>  Colour selected: {{selectedColour}}
         <br /><br />
@@ -38,6 +39,11 @@
         No items<br />
         <select class="ac-select" ac-model="selectedThing" ac-options="thing for thing in things" 
             ac-settings="{ showSearchBox: false, noItemsText: 'No data.' }" ac-change="colourChanged(value)"></select>
+        <br /><br />
+
+        Combo mode. Model object separate from data source. LoadOnOpen<br />
+        <select class="ac-select" ac-model="disconnectedColour" ac-options="c.name for c in getColours()" 
+            ac-settings="{ comboMode: true, loadOnOpen: true }" ac-key="name"></select>  Colour selected: {{disconnectedColour.name}}
         <br /><br />
 
         Inside an ng-switch<br />
@@ -50,7 +56,7 @@
         <br /><br />
 
         Allow custom text<br />
-        <select class="ac-select" ac-model="colour" ac-options="c.name for c in colours" ac-settings="{ allowCustomText: true }"></select>  Colour selected: {{selectedColour}}
+        <select class="ac-select" ac-model="selectedColour" ac-options="c.name for c in colours" ac-settings="{ allowCustomText: true }"></select>  Colour selected: {{selectedColour}}
         <br /><br />
 
         Search mode with load when created<br />

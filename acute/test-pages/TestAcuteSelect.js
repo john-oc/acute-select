@@ -1,6 +1,6 @@
 ﻿/// <reference path="../angular.1.0.8.js" />
 
-angular.module("acuteSelectTest", ["acute.select", "acute.core.services"])
+angular.module("acuteSelectTest", ["acute.select"])
 
 .run(function (acuteSelectService) {
 
@@ -22,6 +22,12 @@ angular.module("acuteSelectTest", ["acute.select", "acute.core.services"])
     $scope.message = "Ready.";
 
     $scope.selectedColour = $scope.colours[2]; // red.
+
+    $scope.disconnectedColour = { name: 'blue', shade: 'dark' };
+    
+    $scope.getColours = function(callback) {
+        callback($scope.colours);
+    };
 
     $scope.colourChanged = function (value) {
         var colourName = value ? value.name : "none";
