@@ -35,7 +35,7 @@ In the above example *colours* can be replaced with a function *colours()* to lo
         "minWidth": "100px",
         "showSearchBox": true,
         "comboMode": false,
-        "loadOnCreate": false,
+        "loadOnCreate": true,
         "loadOnOpen": false,      
         "initialText": null,
         "allowCustomText": false,

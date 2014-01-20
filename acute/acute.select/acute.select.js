@@ -733,8 +733,8 @@ angular.module("acute.select", [])
         "minWidth": "100px",
         "showSearchBox": true,
         "comboMode": false,
-        "loadOnCreate": false,
-        "loadOnOpen": false,      // If true, load function will be called when dropdown opens, i.e. before any search text is entered
+        "loadOnCreate": true,
+        "loadOnOpen": false,      // If true, while loadOnCreate is false, the load function will be called the when dropdown opens
         "allowCustomText": false,
         "minSearchLength": 1,
         "filterType": "contains",    // or "start"
