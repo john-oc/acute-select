@@ -61,6 +61,9 @@ angular.module("acute.select", [])
             scope.textField = null;
             scope.dataFunction = null;
 
+            // Save initial selection, if any
+            scope.initialSelection = angular.copy(scope.model);
+
             if (len > 3) {
                 if (len > 4) {
                     var label = words[len - 5];     // E.g. colour.name
@@ -111,21 +114,41 @@ angular.module("acute.select", [])
             $scope.loadItems = function (dataItems, selectedDataItem) {
                 var itemCount, itemIndex, item, key = $scope.keyField;
                 if (angular.isArray(dataItems)) {
+                    var foundSelected = false;
                     itemCount = $scope.items.length;
                     angular.forEach(dataItems, function (dataItem, index) {
                         itemIndex = itemCount + index;
                         item = $scope.getItemFromDataItem(dataItem, itemIndex);
                         $scope.items.push(item);
-                        if (dataItem === selectedDataItem || (key && key != "" && dataItem[key] == selectedDataItem[key])) {
+                        if (dataItem === selectedDataItem || (key && selectedDataItem && dataItem[key] == selectedDataItem[key])) {
                             $scope.selectedItem = item;
                             $scope.confirmedItem = angular.copy($scope.selectedItem);
                             $scope.model = $scope.selectedItem.value;
                             $scope.comboText = $scope.selectedItem.text;
+                            foundSelected = true;
                         }
                         if (item.text.length > $scope.longestText.length) {
                             $scope.longestText = item.text;
                         }
                     });
+
+                    // If no selected item, but we have an initial selection
+                    if ($scope.initialSelection && !foundSelected) {
+                        // Create a new item
+                        item = $scope.getItemFromDataItem($scope.initialSelection, 0);
+                        if (item) {
+                            // Add it to the start of the items array
+                            $scope.items.unshift(item);
+                            // Update indexes
+                            angular.forEach($scope.items, function (item, index) {
+                                item.index = index;
+                            });
+
+                            $scope.selectedItem = item;
+                            selectionConfirmed();
+                        }
+                    }
+
                     angular.copy($scope.items, $scope.allItems);
                     $scope.setListHeight();
                 }
@@ -174,6 +197,10 @@ angular.module("acute.select", [])
                 }
 
                 var keyCode = event.which || event.keyCode;
+
+                if (keyCode === navKey.downArrow) {
+                    $scope.popupVisible = true;
+                }
 
                 if ($scope.popupVisible || keyCode === navKey.del) {
                     var stopPropagation = true;
@@ -277,7 +304,12 @@ angular.module("acute.select", [])
                 $scope.popupVisible = true;
                 $scope.ensureDataLoaded();
                 $scope.searchText = $scope.comboText;
-                filterData($scope.comboText);
+                if ($scope.comboText != '') {
+                    filterData($scope.comboText);
+                }
+                else if ($scope.settings.allowClear) {
+                    clearSelection();
+                }
             };
 
             // Show/hide popup
@@ -366,6 +398,11 @@ angular.module("acute.select", [])
             // Private functions
 
             function selectionConfirmed(forceClose) {
+
+                // Clear any initial selection                
+                $scope.initialSelection = null;
+
+                var oldConfirmedItem = $scope.confirmedItem;
                 var close = false;
                 if ($scope.selectedItem) {
                     $scope.confirmedItem = angular.copy($scope.selectedItem);
@@ -390,6 +427,12 @@ angular.module("acute.select", [])
                     }
                 }
 
+                if ($scope.confirmedItem !== oldConfirmedItem) {
+                    fireChangeEvent();
+                }
+            }
+
+            function fireChangeEvent() {
                 // Fire acChange function, if specified
                 if (typeof $scope.acChange === 'function') {
                     $scope.acChange({ value: $scope.selectedItem ? $scope.selectedItem.value : null });
@@ -526,6 +569,7 @@ angular.module("acute.select", [])
             function deleteKey(event) {
                 if ($scope.settings.allowClear) {
                     var srcElement = angular.element(event.target);
+                    // If in combo textbox, ignore
                     if (srcElement.hasClass('ac-select-text')) {
                         event.stopPropagation = true;
                     }
@@ -536,11 +580,17 @@ angular.module("acute.select", [])
             }
 
             function clearSelection() {
+                var oldConfirmedItem = $scope.confirmedItem;
                 $scope.selectedItem = null;
                 $scope.confirmedItem = null;
                 $scope.model = null;
+                $scope.initialSelection = null;
                 $scope.scrollTo = 0;
                 $scope.comboText = "";
+
+                if (oldConfirmedItem !== null) {
+                    fireChangeEvent();
+                }
             }
 
             function ensureItemVisible(item) {
