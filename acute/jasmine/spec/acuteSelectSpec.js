@@ -132,6 +132,19 @@ describe("Testing Acute Select Directive", function () {
 
     });
 
+    it("Uses an ac-model object with blank text.", function () {
+
+        $scope.selectedColour = { name: '', shade: '' };
+
+        // Set our view html.
+        var html = '<select class="ac-select" ac-model="selectedColour"' +
+            ' ac-settings="{ loadOnCreate: true }" ac-options="selectedColour.name for colour in colours" ac-key="name"></select>';
+        var element = compileHTML(html);
+
+        var displayText = element.find(".ac-select-display").text().trim();
+        expect(displayText).toBe("");
+
+    });
 
 
     function compileHTML(html) {
