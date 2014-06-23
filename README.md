@@ -32,6 +32,7 @@ In the above example *colours* can be replaced with a function *colours()* to lo
         "noItemsText": "No items found.",
         "itemHeight": 24,
         "itemsInView": 10,
+		"pageSize": null,
         "minWidth": "100px",
         "showSearchBox": true,
         "comboMode": false,
