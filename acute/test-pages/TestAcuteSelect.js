@@ -18,6 +18,7 @@ angular.module("acuteSelectTest", ["acute.select"])
     ];
 
     $scope.things = [];
+    $scope.selectedThing = null;
 
     $scope.message = "Ready.";
 

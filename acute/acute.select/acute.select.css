@@ -4,7 +4,7 @@
 }
 
 .ac-select-wrapper, .ac-select-wrapper input, .ac-select-wrapper select {
-    font-family: Arial;
+    /*font-family: Arial;*/
     font-size: 12px;
     background-color: white;
 }
@@ -16,13 +16,13 @@
     height: 21px;
     overflow: hidden;
     border: 1px solid #c0c0c0;
-    border-top-left-radius: 3px;
-    border-top-right-radius: 3px;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
 }
 
 .ac-select-main-closed {
-    border-bottom-left-radius: 3px;
-    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
 }
 
 .ac-select-main-open {
@@ -45,7 +45,7 @@
 
 .ac-select-table td {
     white-space: nowrap;
-    padding: 0px;
+    padding: 0px !important;
 }
 
 .ac-select-widener td {
@@ -59,8 +59,9 @@ td.ac-select-longest {
 
 td.ac-select-image {
     background-image: url('images/dropdown.gif');
+    background-repeat: no-repeat;
     height: 21px;
-    width: 19px;
+    width: 19px !important;
     cursor: pointer;
     vertical-align: bottom;
     margin-bottom: 0px;
@@ -90,14 +91,16 @@ div.ac-select-no-items {
 }
 
 .ac-select-text-wrapper {
-    padding: 0 3px;
+    padding: 0px;
+    padding-left: 7px;
 }
 
 .ac-select-text {
-    width: 100%;
     padding-left: 2px;
-    margin-left: -2px;
-    border-width: 0px;
+    width: 100%;
+    margin-left: -4px;
+    margin-right: -6px;
+    border-width: 0px !important;
 }
 
 

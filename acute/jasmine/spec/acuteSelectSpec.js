@@ -146,7 +146,6 @@ describe("Testing Acute Select Directive", function () {
 
     });
 
-
     function compileHTML(html) {
         // Get the jqLite or jQuery element
         var element = angular.element(html);

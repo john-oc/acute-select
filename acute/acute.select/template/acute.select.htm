@@ -1,12 +1,12 @@
-﻿<div class="ac-select-wrapper" ng-keydown="keyHandler($event)" tabindex="999" ac-focus="wrapperFocus">
-    <div ng-class="{'ac-select-main':true, 'ac-select-main-closed':!popupVisible, 'ac-select-main-open':popupVisible}" ng-click="mainClick()"
+﻿<div class="ac-select-wrapper" ng-keydown="keyHandler($event)" tabindex="999" ac-focus="wrapperFocus" ng-focus="comboFocus = true">
+    <div ng-class="{'ac-select-main':true, 'ac-select-main-closed':!popupVisible, 'ac-select-main-open':popupVisible}" ng-click="mainClick($event)"
       ng-style="{'minWidth': settings.minWidth }">
-        <table class="ac-select-table" ng-click="togglePopup()">
+        <table class="ac-select-table" ng-click="togglePopup($event)">
             <tr>
                 <td class="ac-select-display">
                     <div class="ac-select-text-wrapper" ng-show="settings.comboMode">
-                        <input type="text" class="ac-select-text" ng-model="comboText" ac-focus="comboFocus" ng-change="comboTextChange()"
-                            placeholder="{{placeholderText}}" ng-keydown="keyHandler($event)" />
+                        <input type="text" class="ac-select-text" ng-model="comboText" ac-focus="comboFocus" ac-select-on-focus ng-change="comboTextChange()"
+                            placeholder="{{settings.placeholderText}}" watermark="{{settings.placeholderText}}" />
                     </div>
                     <span ng-hide="settings.comboMode">{{confirmedItem.text}}</span>
                 </td>
@@ -14,7 +14,7 @@
             </tr>
             <!--Row to get the control width right, using the original select or the longest item text. Hidden at runtime.-->
             <tr class="ac-select-widener">
-                <td class="ac-select-longest">{{longestText}}</td>
+                <td class="ac-select-longest">&nbsp;{{longestText}}</td>
                 <td></td>
             </tr>
         </table>
@@ -24,7 +24,7 @@
             <table>
                 <tr>
                     <td>
-                        <input type="text" class="ac-select-search" ng-model="searchText" placeholder="search" ac-focus="searchBoxFocus"
+                        <input type="text" class="ac-select-search" ng-model="searchText" placeholder="search" ac-focus="searchBoxFocus" ac-select-on-focus
                             ng-change="findData()" ng-keydown="keyHandler($event)" />
                     </td>
                     <td class="ac-select-add" ng-class="{ 'ac-select-disabled': matchFound }" title="Add" ng-show="settings.allowCustomText" ng-click="addButtonClick()">
@@ -33,19 +33,19 @@
                 </tr>
             </table>
         </div>
-        <div class="ac-select-no-items" ng-if="items.length==0">{{settings.noItemsText}}</div>
+        <div class="ac-select-no-items" ng-show="noItemsFound">{{settings.noItemsText}}</div>
         <div class="ac-select-list" ng-style='{ "height": (listHeight + 6) + "px" }' ac-scroll-to="scrollTo" ac-on-scroll="listScrolled()">
             <ul>
-                <li id="{{item.id}}" ng-model="selectedItem" ng-repeat="item in items | filter: search" 
+                <li id="{{item.id}}" ng-repeat="item in items | filter: search" 
                     ng-class="getItemClass($index)" ng-click="itemClick($index)" ng-style="{ height: settings.itemHeight + 'px', 'line-height': settings.itemHeight + 'px' }">
                     {{item.text}}
                 </li>
             </ul>
-            <div class="ac-select-loading" ng-show="showLoadingMessage" ng-style="{ height: settings.itemHeight + 'px'}">Loading...</div>
+            <div class="ac-select-loading" ng-show="loading" ng-style="{ height: settings.itemHeight + 'px'}">Loading...</div>
         </div>
-        <div class="ac-select-load-more" ng-show="paging && items.length >= settings.itemsInView">
-            Items 1 to {{items.length}} of {{matchingItemTotal}} 
-            <span ng-show="items.length < matchingItemTotal" ng-click="loadMore()">Load more...</span>
+        <div class="ac-select-load-more" ng-show="allDataLoaded===false">
+            {{items.length}} items<!-- of {{matchingItemTotal}}--> 
+            <span ng-click="loadMore()">{{loadMessage}}</span>
         </div>
     </div>
 </div>

@@ -32,18 +32,18 @@
 
         Basic mode without search<br />
         <!-- N.B. don't use self-closing select as this results in spurious mark-up! -->
-        <select class="ac-select" ac-model="selectedColour" ac-options="c.name for c in colours" 
+        <select class="ac-select" ac-model="selectedColour" ac-options="c.name for c in colours"
             ac-settings="{ showSearchBox: false }" ac-change="colourChanged(value)"></select>  Colour selected: {{selectedColour}}
         <br /><br />
 
-        No items<br />
+        No items. minWidth 200px<br />
         <select class="ac-select" ac-model="selectedThing" ac-options="thing for thing in things" 
-            ac-settings="{ showSearchBox: false, noItemsText: 'No data.' }" ac-change="colourChanged(value)"></select>
+            ac-settings="{ showSearchBox: false, noItemsText: 'No data.', minWidth: '200px' }" ac-change="colourChanged(value)"></select>
         <br /><br />
 
         Combo mode. Model object separate from data source. LoadOnOpen<br />
         <select class="ac-select" ac-model="disconnectedColour" ac-options="c.name for c in getColours()" 
-            ac-settings="{ comboMode: true, loadOnOpen: true }" ac-key="name"></select>  Colour selected: {{disconnectedColour.name}}
+            ac-settings="{ comboMode: true, loadOnCreate: false, loadOnOpen: true }" ac-key="name"></select>  Colour selected: {{disconnectedColour.name}}
         <br /><br />
 
         Inside an ng-switch<br />
@@ -76,7 +76,7 @@
 
         Combo mode - load when user types<br />
         <select class="ac-select stateList" ac-model="state3" ac-options="s.name for s in getStates()" 
-            ac-settings="{comboMode:true, noItemsText:'No matches found', minWidth: '300px'}"></select><br/>State selected: {{state3.name}}
+            ac-settings="{ loadOnCreate: false, loadOnOpen: false, comboMode:true, noItemsText:'No matches found', minWidth: '300px'}"></select><br/>State selected: {{state3.name}}
         <br /><br />
 
         Combo mode with initial selection and load on open; allowClear = false; filter mode: contains<br />
@@ -86,17 +86,17 @@
         <br /><br />
         Paging:<br />
         <select class="ac-select stateList" ac-model="state5" ac-options="s.name for s in getStatesPaged()" 
-            ac-settings="{noItemsText:'No matches found', minWidth: '300px', itemsInView: 10, minSearchLength: 0 }"></select><br/>State selected: {{state5.name}}
+            ac-settings="{noItemsText:'No matches found', minWidth: '300px', pageSize: 10, itemsInView: 10, minSearchLength: 0 }"></select><br/>State selected: {{state5.name}}
         <br /><br />
 
         Paging with first page of data loading when dropdown opens:<br />
         <select class="ac-select stateList" ac-model="state6" ac-options="s.name for s in getStatesPaged()" 
-            ac-settings="{noItemsText:'No matches found', minWidth: '300px', itemsInView: 10, minSearchLength: 0, loadOnOpen: true }"></select><br/>State selected: {{state6.name}}
+            ac-settings="{noItemsText:'No matches found', minWidth: '300px', itemsInView: 10, minSearchLength: 0, loadOnCreate: false, loadOnOpen: true }"></select><br/>State selected: {{state6.name}}
         <br /><br />
 
         Search mode with load on open - as a custom element. allowClear = false<br />
         <ac-select class="stateList" ac-model="state7" ac-options="s.name for s in getAllStates()" 
-            ac-settings="{  initialText: '{{state7.name}}', allowClear: false, loadOnOpen: true, comboMode:false, minWidth: '300px' }"></ac-select><br/>State selected: {{state7.name}}
+            ac-settings="{  initialText: '{{state7.name}}', allowClear: false, loadOnCreate: false, loadOnOpen: true, comboMode:false, minWidth: '300px' }"></ac-select><br/>State selected: {{state7.name}}
         <br /><br />
 
 
@@ -119,5 +119,8 @@
             <option>white</option>
         </select>
     </div>
+    <br />
+    <br />
+    <br />
 </body>
 </html>
