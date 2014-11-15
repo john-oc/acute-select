@@ -30,6 +30,10 @@
 
         <p>{{message}}</p>
 
+        String Array<br />
+        <select class="ac-select" ac-model="selectedTextItem" ac-options="for textItem in textItems" ac-settings=""></select>  String selected: {{selectedTextItem}}
+        <br /><br />
+
         Basic mode without search<br />
         <!-- N.B. don't use self-closing select as this results in spurious mark-up! -->
         <select class="ac-select" ac-model="selectedColour" ac-options="c.name for c in colours"
@@ -41,9 +45,9 @@
             ac-settings="{ showSearchBox: false, noItemsText: 'No data.', minWidth: '200px' }" ac-change="colourChanged(value)"></select>
         <br /><br />
 
-        Combo mode. Model object separate from data source. LoadOnOpen<br />
+        Combo mode. Model object separate from data source.<br />
         <select class="ac-select" ac-model="disconnectedColour" ac-options="c.name for c in getColours()" 
-            ac-settings="{ comboMode: true, loadOnCreate: false, loadOnOpen: true }" ac-key="name"></select>  Colour selected: {{disconnectedColour.name}}
+            ac-settings="{ comboMode: true, loadOnCreate: true }" ac-key="name"></select>  Colour selected: {{disconnectedColour.name}}
         <br /><br />
 
         Inside an ng-switch<br />
@@ -57,6 +61,11 @@
 
         Allow custom text<br />
         <select class="ac-select" ac-model="selectedColour" ac-options="c.name for c in colours" ac-settings="{ allowCustomText: true }"></select>  Colour selected: {{selectedColour}}
+        <br /><br />
+
+        Allow custom text in combo mode - "Press Enter to Add"<br />
+        <select class="ac-select" ac-model="selectedColour" ac-options="c.name for c in colours" ac-settings="{ allowCustomText: true, comboMode: true }">
+        </select>  Colour selected: {{selectedColour}}
         <br /><br />
 
         Search mode with load when created<br />

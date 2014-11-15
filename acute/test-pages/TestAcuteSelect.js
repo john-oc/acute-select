@@ -9,6 +9,9 @@ angular.module("acuteSelectTest", ["acute.select"])
 
 }).controller("MainCtrl", function ($scope, $filter, $window, $timeout, safeApply) {
 
+    $scope.textItems = ['Square', 'Circle', 'Triangle', 'Pentagon', 'Hexagon'];
+    $scope.selectedTextItem = 'Triangle';
+
     $scope.colours = [
       { name: 'black', shade: 'dark' },
       { name: 'white', shade: 'light' },

@@ -12,7 +12,7 @@
 .ac-select-main {
     vertical-align: middle;
     padding-left:2px;
-    margin-right: -1px;
+    margin-right: -2px;
     height: 21px;
     overflow: hidden;
     border: 1px solid #c0c0c0;
@@ -65,6 +65,7 @@ td.ac-select-image {
     cursor: pointer;
     vertical-align: bottom;
     margin-bottom: 0px;
+    border-left: solid 1px #e8e8e8;
 }
 
 div.ac-select-popup {
@@ -73,21 +74,24 @@ div.ac-select-popup {
     border-left: 1px solid #c0c0c0;
     border-right: 1px solid #c0c0c0;
     border-bottom: 1px solid #c0c0c0;
-    z-index: 99999999;
+    z-index: 99;
     background-color: white;
     padding-top: 2px;
-    padding-left:2px;
+    /*padding-left:2px;*/
     width: 100%;
+    margin-bottom: 10px;
 }
 
 div.ac-select-list {
     overflow: auto;
+    overflow-x: hidden;
     margin-bottom: 1px;
     border-top: 1px solid #d0d0d0;
 }
 
 div.ac-select-no-items {
     padding-left: 3px;
+    padding-bottom: 3px;
 }
 
 .ac-select-text-wrapper {
