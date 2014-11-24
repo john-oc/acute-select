@@ -21,8 +21,41 @@
 As you can see, this is very similar to the way the angular select directive works.
 In the above example *colours* can be replaced with a function *colours()* to load the data either when the dropdown is created, when it is first opened, or when search text is typed.
 
+## Quick Start Guide ##
+This example shows how to get acute-select up and running with a list of string values. It assumes you are familiar with the basics of AngularJS.
 
+- Create two files: AcuteTest.htm and AcuteTest.js
+- Set ng-app="AcuteTest" on your html tag and on the body, set ng-controller="MainController"
+- Now include angular.min.1.x.x.js, acute.select.js, acute.select.css, and, AcuteTest.js:-
 
+		<script type="text/javascript" src="../lib/angular.1.2.26.js"></script>
+		<script type="text/javascript" src="../acute.select/acute.select.js"></script>
+		<link href="../acute.select/acute.select.css" rel="stylesheet" />
+		<script type="text/javascript" src="AcuteTest.js"></script>
+- in AcuteTest.js, define the module and add a dependency for 'acute.select':-
+
+		angular.module("AcuteTest", ['acute.select'])
+
+- in your HMTL add an **ac-select** element (or a div with class="ac-select") and set the **ac-model** and **ac-options** attributes:-
+
+		<ac-select ac-model="data.selectedShape" ac-options="for shape in shapes"></select>
+
+    **Note:-** always close the select tag with &lt;/select> as a self-closing select, i.e. ending in "/>", is not valid.
+
+- Now in your controller, define your model variable and an array of strings for the dropdown values. The .js should then look like this:-
+
+		angular.module("AcuteTest", ['acute.select'])
+		.controller("MainController", function("$scope") {
+			// Create an object for our model data (it's always wise have a "." in your model)
+		    $scope.data = {
+				selectedShape: 'Circle'
+			};
+		    $scope.shapes = ['Square', 'Circle', 'Triangle', 'Pentagon', 'Hexagon'];
+		});		
+
+	Fire up the page and you should see the populated dropdown with the Circle item selected.
+
+## Documentation ##
 ### Settings ###
 
 **Default values:-**
@@ -30,24 +63,34 @@ In the above example *colours* can be replaced with a function *colours()* to lo
     {
         "templatePath": "/acute.select/",
         "noItemsText": "No items found.",
+        "placeholderText": "Please select...",
         "itemHeight": 24,
         "itemsInView": 10,
-		"pageSize": null,
+        "pageSize": null,
         "minWidth": "100px",
+        "maxWidth": "",			  // Truncates text if it exceeds this maximum width, but shows the full text as a tooltip
         "showSearchBox": true,
         "comboMode": false,
+        "comboSelectOnFocus": true,
         "loadOnCreate": true,
-        "loadOnOpen": false,      
-        "initialText": null,
+        "loadOnOpen": false,      // If true, while loadOnCreate is false, the load function will be called when the dropdown opens
         "allowCustomText": false,
-        "minSearchLength": 1,
-        "filterType": "contains",    // or "start"
+        "minSearchLength": 0,
+        "filterType": "contains", // or "start"
         "allowClear": true
     };
 
 **Note:-** if both *loadOnCreate* and *loadOnOpen* are *false*, the list will only be populated when search text is entered.
 
 Settings are specified using the *ac-settings* attribute.
+
+### Data from the server ###
+An example with data received asynchronously using $http: 
+
+		$http.post("MyWebService.asmx/GetStates", {})
+		.success(function(result) {
+			$scope.colours = result.d;	// (".d" is specific to ASP.NET)
+		});
 
 ### Load on demand ###
 
@@ -97,6 +140,22 @@ same copy of the Alaska object as the one in the array. There is a workaround, w
 With the acute select directive you can avoid this problem altogether by simply setting ac-key to 'id':-
 
 	<ac-select ac-model="currentState" ac-options="state.name for state in states" ac-key="id"></select>
+
+### ac-focus-when attribute ###
+If present, focus will be given to either the combo or search text box when the expression it is set to evaluates as *true*. e.g.
+
+	<ac-select ac-model="currentState" ac-options="state.name for state in states"
+	 ac-focus-when="flags.editMode"></select>
+
+Then in your controller:-
+
+		$scope.flags = {
+			editMode: false
+		};
+	
+		...
+		// Give ac-select the focus
+		$scope.flags.editMode = true;
 
 ### Global settings ###
 

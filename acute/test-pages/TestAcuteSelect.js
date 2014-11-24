@@ -1,4 +1,4 @@
-﻿/// <reference path="../angular.1.0.8.js" />
+﻿/// <reference path="../lib/angular.1.2.6.js" />
 
 angular.module("acuteSelectTest", ["acute.select"])
 
@@ -7,10 +7,12 @@ angular.module("acuteSelectTest", ["acute.select"])
     // Use the acute select service to set the template path for all instances
     acuteSelectService.updateSetting("templatePath", "/acute.select/template");
 
-}).controller("MainCtrl", function ($scope, $filter, $window, $timeout, safeApply) {
+}).controller("MainCtrl", function ($scope, $http, $filter, $window, $timeout, safeApply) {
 
     $scope.textItems = ['Square', 'Circle', 'Triangle', 'Pentagon', 'Hexagon'];
-    $scope.selectedTextItem = 'Triangle';
+    $scope.data = {
+        selectedTextItem: 'Triangle'
+    };
 
     $scope.colours = [
       { name: 'black', shade: 'dark' },
@@ -120,17 +122,31 @@ angular.module("acuteSelectTest", ["acute.select"])
     $scope.getStatesPaged = function (callback, searchText, offset) {
         // Get states that contain the search text
         var filteredData = $filter("filter")($scope.allStates, searchText);
-        // Get 15 states, starting at the specified offset
-        data = filteredData.slice(offset, offset + 15);
+        // Get 10 states, starting at the specified offset
+        data = filteredData.slice(offset, offset + 10);
         if (offset === 0) {
-            // Return data + total count of matching records
-            callback(data, filteredData.length);
+            // Return data, searchtext + offset
+            callback(data, searchText, filteredData.length);
         }
         else {
             // Set a short delay to simulate server response time
-            $timeout(function () { callback(data, filteredData.length); }, 400);
+            $timeout(function() {
+                callback(data, searchText, offset);
+            }, 400);
         }
     };
 
     $scope.ngSwitchValue = "value";
+
+    $scope.selectedServerItem = null;
+
+    // Web Service call
+    $http.post("TestWS.asmx/GetItemData", {})
+    .success(function(result) {
+        $scope.serverItems = result.d;
+    })
+    .error(function(a,b,c) {
+        alert("Web service call failed!");
+    });
+
 });

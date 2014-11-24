@@ -1,4 +1,4 @@
-﻿/// <reference path="../lib/angular.1.2.1.js" />
+﻿/// <reference path="../lib/angular.1.2.26.js" />
 
 // Directive that creates a searchable dropdown list.
 
@@ -51,7 +51,7 @@ angular.module("acute.select", [])
 
                 // Check that ac-options and ac-model values are set
                 if (!$scope.acOptions || $scope.model === undefined) {
-                    throw "ac-options and ac-model attributes must be set";
+                    throw "ac-model and ac-options attributes must be set";
                 }
 
                 processSettings();
@@ -63,9 +63,6 @@ angular.module("acute.select", [])
                 var len = words.length;
                 $scope.textField = null;
                 $scope.dataFunction = null;
-
-                // Save initial selection, if any
-                $scope.setInitialSelection();
 
                 if (len > 3) {
                     if (len > 4) {
@@ -93,14 +90,27 @@ angular.module("acute.select", [])
                     else {
                         // Get the data from the parent $scope
                         var dataItems = $scope.$parent.$eval(dataName);
-                        // Create dropdown items
-                        $scope.loadItems(dataItems, $scope.model);
-                        // Save selected item
-                        $scope.confirmedItem = angular.copy($scope.selectedItem);
-                        $scope.allDataLoaded = true;
+                        loadStaticData(dataItems);
+                        // Watch for any change to the data
+                        $scope.$parent.$watch(dataName, function(newVal, oldVal) {
+                            if (newVal !== oldVal && angular.isArray(newVal)) {
+                                loadStaticData(newVal)
+                            }
+                        });
                     }
                 }
+
+                // Save initial selection, if any
+                $scope.setInitialSelection();
             };
+
+            function loadStaticData(dataItems) {
+                // Create dropdown items
+                $scope.loadItems(dataItems, $scope.model);
+                // Save selected item
+                $scope.confirmedItem = angular.copy($scope.selectedItem);
+                $scope.allDataLoaded = $scope.items.length > 0;
+            }
 
             // If the ac-refresh attribute is set, watch it. If its value gets set to true, re-initialise.
             if ($scope.acRefresh !== undefined) {
@@ -238,7 +248,7 @@ angular.module("acute.select", [])
             $scope.getItemFromDataItem = function(dataItem, itemIndex) {
                 var item = null;
                 if (dataItem !== null) {
-                    if (($scope.textField === null || $scope.textField === undefined && typeof dataItem === 'string') {
+                    if ($scope.textField === null || $scope.textField === undefined && typeof dataItem === 'string') {
                         item = { "text": dataItem, "value": dataItem, "index": itemIndex };
                     }
                     else if (dataItem[$scope.textField]) {

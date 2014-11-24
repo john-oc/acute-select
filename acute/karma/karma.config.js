@@ -23,8 +23,8 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       '../lib/jquery-1.8.2.min.js',
-      '../lib/angular.1.2.1.js',
-      '../lib/angular-mocks.1.2.1.js',
+      '../lib/angular.1.2.26.js',
+      '../lib/angular-mocks.1.2.26.js',
       '../jasmine/spec/*.js',
       '../acute.select/*.js'
     ],

@@ -1,7 +1,7 @@
-﻿/// <reference path="../lib/jasmine-1.3.0/jasmine.js" />
-/// <reference path="../../lib/angular.1.2.1.js" />
-/// <reference path="../../lib/angular-mocks.1.2.1.js" />
+﻿/// <reference path="../../lib/angular.1.2.26.js" />
+/// <reference path="../../lib/angular-mocks.1.2.26.js" />
 /// <reference path="../../lib/jquery-1.8.2.intellisense.js" />
+/// <reference path="../lib/jasmine-2.1.1/jasmine.js" />
 
 describe("Testing Acute Select Directive", function () {
     var $scope,
@@ -28,12 +28,10 @@ describe("Testing Acute Select Directive", function () {
         //load the module
         module('acute.select');
 
-        inject(function (_$compile_, $rootScope, $templateCache, _$timeout_) {
+        inject(function (_$compile_, $rootScope, $templateCache) {
 
             // Create a scope
-            $scope = $rootScope.$new();
-
-            $timeout = _$timeout_;
+            $scope = $rootScope.$new(true);
 
             // Data for the select
             $scope.colours = [
@@ -59,12 +57,12 @@ describe("Testing Acute Select Directive", function () {
         });
     });
 
-    it("Creates a UL dropdown and selects 'Red' when 'r' is entered in the search box", function () {
+    it("Creates a UL dropdown and selects 'Red' when 'r' is entered in the search box", function (done) {
 
         $scope.selectedColour = $scope.colours[0];
 
         // Set our view html.
-        var html = '<select class="ac-select" ac-model="selectedColour" ac-options="selectedColour.name for colour in colours"></select>';
+        var html = '<select class="ac-select" ac-model="selectedColour" ac-options="colour.name for colour in colours"></select>';
         var element = compileHTML(html);
         
         var ul = element.find("UL");
@@ -76,45 +74,59 @@ describe("Testing Acute Select Directive", function () {
         expect(dropdownDiv.length).toEqual(1);
         var searchBox = dropdownDiv.find("INPUT");
         expect(searchBox.length).toEqual(1);
+
+        // Down arrow to open dropdown
+        sendKey(keyCodes.downArrow, element);
         sendKey("r", searchBox);
 
-        $timeout(function () {
-            sendKey(13, searchBox);
-            expect(typeof $scope.selectedColour).toBe("object");
-            expect($scope.selectedColour.name).toBe("red");
+        setTimeout(function() {
+            sendKey(keyCodes.enter, element);
 
-            $timeout(function () {
+            setTimeout(function () {
+                expect(typeof $scope.selectedColour).toBe("object");
+                expect($scope.selectedColour.name).toBe("red");
                 // Delete should clear the selection
                 sendKey(keyCodes.del, searchBox);
                 expect($scope.selectedColour).toBe(null);
+                done();
             }, 500);
 
         }, 500);
 
     });
 
-    it("Correctly updates the object specified by ac-model when the directive is used within an ng-switch directive.", function () {
+    it("Correctly updates the object specified by ac-model when the directive is used within an ng-switch directive.", function (done) {
 
-        $scope.selectedColour = $scope.colours[2]; // red
+        $scope.data = {
+            selectedColour2: null
+        };
+
         $scope.selectType = "basic";
 
-        // Set our view html.
         var html =
         '<div ng-switch="selectType">' +
             '<div ng-switch-when="basic">' +
-                '<select class="ac-select" ac-model="selectedColour" ac-options="selectedColour.name for colour in colours"></select>' +
+                '<select class="ac-select" ac-model="data.selectedColour2" ac-options="colour.name for colour in colours"></select>' +
             '</div>' +
         '</div>';
 
-        var element = compileHTML(html);
+        var switchDiv = compileHTML(html);
+        var element = switchDiv.find(".ac-select");
         var dropdownDiv = element.find(".ac-select-popup");
         var searchBox = dropdownDiv.find("INPUT");
 
+        // Down arrow to open dropdown
+        sendKey(keyCodes.downArrow, element);
         sendKey("y", searchBox);
 
-        $timeout(function () {
-            sendKey(13, searchBox);
-            expect($scope.selectedColour.name).toBe("yellow");
+        setTimeout(function() {
+            sendKey(keyCodes.enter, element);
+
+            setTimeout(function() {
+                expect($scope.data.selectedColour2).not.toBe(null);
+                expect($scope.data.selectedColour2.name).toBe("yellow");
+                done();
+            }, 500);
         }, 500);
     });
 
@@ -170,10 +182,13 @@ describe("Testing Acute Select Directive", function () {
     function sendKey(key, element) {
         var keyCode = key;
         if (typeof key === "string") {
-            keyCode = key.charCodeAt(0);
+            //keyCode = key.charCodeAt(0);
+            element.val(key).trigger($.Event("change"));
         }
-        var e = $.Event("keydown", { keyCode: keyCode });
-        element.trigger(e);
+        else {
+            var e = $.Event("keydown", { keyCode: keyCode });
+            element.trigger(e);
+        }
     }
 });
 

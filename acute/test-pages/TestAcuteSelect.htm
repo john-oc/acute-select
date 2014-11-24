@@ -8,7 +8,8 @@
       </script>
     <![endif]-->
 
-    <script type="text/javascript" src="../lib/angular.1.2.1.js"></script>
+    <script src="../lib/angular%201.3.3/angular.min.js"></script>
+    <!--<script type="text/javascript" src="../lib/angular.1.2.26.js"></script>-->
     <script type="text/javascript" src="../acute.select/acute.select.js"></script>
     <link href="../acute.select/acute.select.css" rel="stylesheet" />
     <script type="text/javascript" src="TestAcuteSelect.js"></script>
@@ -30,8 +31,12 @@
 
         <p>{{message}}</p>
 
+        Data from Web Service<br />
+        <ac-select class="statelist" ac-model="selectedServerItem" ac-options="for serverItem in serverItems"></ac-select>
+        <br /><br />
+
         String Array<br />
-        <select class="ac-select" ac-model="selectedTextItem" ac-options="for textItem in textItems" ac-settings=""></select>  String selected: {{selectedTextItem}}
+        <select class="ac-select" ac-model="data.selectedTextItem" ac-options="for textItem in textItems" ac-settings=""></select>  String selected: {{data.selectedTextItem}}
         <br /><br />
 
         Basic mode without search<br />
@@ -100,7 +105,7 @@
 
         Paging with first page of data loading when dropdown opens:<br />
         <select class="ac-select stateList" ac-model="state6" ac-options="s.name for s in getStatesPaged()" 
-            ac-settings="{noItemsText:'No matches found', minWidth: '300px', itemsInView: 10, minSearchLength: 0, loadOnCreate: false, loadOnOpen: true }"></select><br/>State selected: {{state6.name}}
+            ac-settings="{noItemsText:'No matches found', minWidth: '300px', pageSize: 10, itemsInView: 10, minSearchLength: 0, loadOnCreate: false, loadOnOpen: true }"></select><br/>State selected: {{state6.name}}
         <br /><br />
 
         Search mode with load on open - as a custom element. allowClear = false<br />
@@ -108,12 +113,10 @@
             ac-settings="{  initialText: '{{state7.name}}', allowClear: false, loadOnCreate: false, loadOnOpen: true, comboMode:false, minWidth: '300px' }"></ac-select><br/>State selected: {{state7.name}}
         <br /><br />
 
-
         Search mode with load on create - as a custom element<br />
         <ac-select class="stateList" ac-model="state8" ac-options="s.name for s in getAllStates()" 
             ac-settings="{loadOnCreate: true, comboMode: false, minWidth: '300px' }"></ac-select><br/>State selected: {{state8.name}}
         <br /><br />
-
     </div>
     <div>
         <select>
