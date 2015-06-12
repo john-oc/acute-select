@@ -11,7 +11,7 @@
 // Note:- ac-options works like ng-options, but does not support option groups
 
 angular.module("acute.select", [])
-.directive("acSelect", function($parse, acuteSelectService) {
+.directive("acSelect", ["$parse", "acuteSelectService", function($parse, acuteSelectService) {
     var defaultSettings = acuteSelectService.getSettings();
     return {
         restrict: "EAC",
@@ -585,13 +585,15 @@ angular.module("acute.select", [])
                 if ($scope.settings.allowCustomText && !$scope.matchFound) {
                     customText = $scope.searchText;
                     if (customText.length > 0) {
-                        // Create new data item
-                        dataItem = {};
-                        dataItem[$scope.textField] = customText;
-
                         // add the key field if it is defined.
                         if ($scope.keyField) {
+                            // Create new data item
+                            dataItem = {};
                             dataItem[$scope.keyField] = customText;
+                        }
+                        // set data item to custom text.
+                        else {
+                            dataItem = customText;
                         }
                         $scope.modelUpdating = true;
                         $scope.model = dataItem;
@@ -868,10 +870,10 @@ angular.module("acute.select", [])
             }
         }
     };
-})
+}])
 
 // Directive to set focus to an element when a specified expression is true
-.directive('acFocus', function($timeout, $parse, safeApply) {
+.directive('acFocus', ["$timeout", "$parse", "safeApply", function($timeout, $parse, safeApply) {
     return {
         restrict: "A",
         link: function(scope, element, attributes) {
@@ -890,7 +892,7 @@ angular.module("acute.select", [])
             });
         }
     };
-})
+}])
 
 .directive('acSelectOnFocus', function() {
     return {
@@ -965,7 +967,7 @@ angular.module("acute.select", [])
 })
 
 // safeApply service, courtesy Alex Vanston and Andrew Reutter
-.factory('safeApply', [function($rootScope) {
+.factory('safeApply', ['$rootScope', function($rootScope) {
     return function($scope, fn) {
         var phase = $scope.$root.$$phase;
         if (phase == '$apply' || phase == '$digest') {
