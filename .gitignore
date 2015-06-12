@@ -150,3 +150,9 @@ $RECYCLE.BIN/
 # Mac crap
 .DS_Store
 /Breaking change Nov 2014.txt
+*.sln
+*.suo
+acute/Properties
+acute/*.config
+acute/*.user
+acute/*.csproj
