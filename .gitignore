@@ -156,3 +156,4 @@ acute/Properties
 acute/*.config
 acute/*.user
 acute/*.csproj
+acute/acute.core/.*
