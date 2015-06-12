@@ -1,4 +1,4 @@
-﻿/// <reference path="../lib/angular.1.2.26.js" />
+﻿/// <reference path="../lib/angular.1.2.1.js" />
 
 // Directive that creates a searchable dropdown list.
 
@@ -11,244 +11,132 @@
 // Note:- ac-options works like ng-options, but does not support option groups
 
 angular.module("acute.select", [])
-.directive("acSelect", function($parse, acuteSelectService) {
+.directive("acSelect", ["$parse", "acuteSelectService", function ($parse, acuteSelectService) {
     var defaultSettings = acuteSelectService.getSettings();
     return {
         restrict: "EAC",
         scope: {
             "acSettings": "@",
-            "acOptions": "@",
-            "model": "=acModel",
             "acChange": "&",
             "keyField": "@acKey",
-            "acRefresh": "=",
-            "acFocusWhen": "="
+            "model": "=acModel",
         },
         replace: true,
         templateUrl: defaultSettings.templatePath + "acute.select.htm",
-        link: function(scope, element, attrs) {
-            scope.initialise();
-        },
-        // **************************************************************
-        //                          CONTROLLER
-        // **************************************************************
-        controller: function($scope, $element, $window, $rootScope, $timeout, $filter, navKey, safeApply) {
+        link: function (scope, element, attrs) {
 
-            $scope.initialise = function() {
-                $scope.settings = acuteSelectService.getSettings();
-                $scope.previousSearchText = "";
-                $scope.searchText = "";
-                $scope.longestText = "";
-                $scope.comboText = "";
-                $scope.items = [];
-                $scope.allItems = [];        // Unfiltered
-                $scope.selectedItem = null;
-                $scope.allDataLoaded = false;
-                $scope.scrollTo = 0;         // To change scroll position
-                $scope.scrollPosition = 0;   // Reported scroll position
-                $scope.listHeight = 0;
-                $scope.matchFound = false;
+            scope.settings = acuteSelectService.getSettings();
 
-                // Check that ac-options and ac-model values are set
-                if (!$scope.acOptions || $scope.model === undefined) {
-                    throw "ac-model and ac-options attributes must be set";
+            scope.searchText = "";
+            scope.longestText = "";
+            scope.comboText = "";
+            scope.items = [];
+            scope.allItems = [];        // Unfiltered
+            scope.selectedItem = null;
+            scope.allDataLoaded = false;
+            scope.scrollTo = 0;         // To change scroll position
+            scope.scrollPosition = 0;   // Reported scroll position
+            scope.listHeight = 0;
+            scope.matchFound = false;
+
+            // Check that ac-options and ac-model values are set
+            var acOptions = attrs.acOptions;
+            if (acOptions === undefined || attrs.acModel === undefined) {
+                throw "ac-options and ac-model attributes must be set";
+            }
+
+            if (attrs.acSettings != undefined) {
+                scope.acSettings = scope.$eval(attrs.acSettings);
+                if (typeof scope.acSettings === "object") {
+                    // Merge settings with default values
+                    angular.extend(scope.settings, scope.acSettings);
                 }
+            }
 
-                processSettings();
+            // Parse acOptions
 
-                // Parse acOptions
+            // Value should be in the form "label for value in array" or "for value in array"
+            var words = acOptions.split(" ");
+            var len = words.length;
+            scope.textField = null;
+            scope.dataFunction = null;
 
-                // Value should be in the form "label for value in array" or "for value in array"
-                var words = $scope.acOptions.split(' ');
-                var len = words.length;
-                $scope.textField = null;
-                $scope.dataFunction = null;
+            if (len > 3) {
+                if (len > 4) {
+                    var label = words[len - 5];     // E.g. colour.name
+                    scope.textField = label.split(".")[1];
+                }
+                var dataName = words[len - 1];
 
-                if (len > 3) {
-                    if (len > 4) {
-                        var label = words[len - 5];     // E.g. colour.name
-                        $scope.textField = label.split(".")[1];
-                    }
-                    var dataName = words[len - 1];
-
-                    // See if a data load function is specified, i.e. name ends in "()"
-                    if (dataName.indexOf("()") === dataName.length - 2) {
-                        dataName = dataName.substr(0, dataName.length - 2)
-                        // Get a reference to the data function
-                        var dataFunction = $scope.$parent.$eval(dataName);
-                        if (typeof dataFunction === "function") {
-                            $scope.dataFunction = dataFunction;
-                            if ($scope.settings.loadOnCreate) {
-                                // Load initial data (args are callback function, search text and item offset)
-                                $scope.dataFunction($scope.dataCallback, "", 0);
-                            }
+                // See if a data load function is specified, i.e. name ends in "()"
+                if (dataName.indexOf("()") === dataName.length - 2) {
+                    dataName = dataName.substr(0, dataName.length - 2)
+                    // Get a reference to the data function
+                    var dataFunction = scope.$parent.$eval(dataName);
+                    if (typeof dataFunction === "function") {
+                        scope.dataFunction = dataFunction;
+                        if (scope.settings.loadOnCreate) {
+                            // Load initial data (args are callback function, search text and item offset)
+                            scope.dataFunction(scope.dataCallback, "", 0);
                         }
-                        else {
-                            throw "Invalid data function: " + dataName;
+                        else if (scope.model && scope.model[scope.textField]) {
+                            scope.confirmedItem = scope.selectedItem = scope.getItemFromDataItem(scope.model, 0);
+                            if (scope.confirmedItem) {
+                                scope.comboText = scope.confirmedItem.text;
+                            }
                         }
                     }
                     else {
-                        // Get the data from the parent $scope
-                        var dataItems = $scope.$parent.$eval(dataName);
-                        loadStaticData(dataItems);
-                        // Watch for any change to the data
-                        $scope.$parent.$watch(dataName, function(newVal, oldVal) {
-                            if (newVal !== oldVal && angular.isArray(newVal)) {
-                                loadStaticData(newVal)
-                            }
-                        });
+                        throw "Invalid data function: " + dataName;
                     }
                 }
-
-                // Save initial selection, if any
-                $scope.setInitialSelection();
-            };
-
-            function loadStaticData(dataItems) {
-                // Create dropdown items
-                $scope.loadItems(dataItems, $scope.model);
-                // Save selected item
-                $scope.confirmedItem = angular.copy($scope.selectedItem);
-                $scope.allDataLoaded = $scope.items.length > 0;
-            }
-
-            // If the ac-refresh attribute is set, watch it. If its value gets set to true, re-initialise.
-            if ($scope.acRefresh !== undefined) {
-                $scope.$watch("acRefresh", function(newValue, oldValue) {
-                    if (newValue === true) {
-                        $scope.initialise();
-                    }
-                });
-            }
-
-            // Handle ac-focus-when attribute. When set to true
-            // give focus to either the combo or search text box
-            if ($scope.acFocusWhen !== undefined) {
-                $scope.$watch("acFocusWhen", function(newValue, oldValue) {
-                    if (newValue === true) {
-                        // Set flag to fire the ac-focus directive
-                        if ($scope.settings.comboMode) {
-                            $scope.comboFocus = true;
-                        }
-                        else {
-                            $scope.searchBoxFocus = true;
-                        }
-                        $scope.acFocusWhen = false;
-                    }
-                });
-            }
-
-            $scope.setInitialSelection = function() {
-                if ($scope.model) {
-                    $scope.initialSelection = angular.copy($scope.model);
-                    $scope.initialItem = $scope.getItemFromDataItem($scope.model, 0);
-                    $scope.confirmedItem = $scope.selectedItem = $scope.initialItem;
-                    $scope.comboText = $scope.confirmedItem ? $scope.confirmedItem.text : "";
+                else {
+                    // Get the data from the parent scope
+                    var dataItems = scope.$parent.$eval(dataName);
+                    // Create dropdown items
+                    scope.loadItems(dataItems, scope.model);
+                    // Save selected item
+                    scope.confirmedItem = angular.copy(scope.selectedItem);
+                    scope.allDataLoaded = true;
                 }
-            };
+            }
+        },
+
+        // **************************************************************
+        //                          CONTROLLER
+        // **************************************************************
+        controller: [
+        "$scope", "$element", "$attrs", "$window", "$rootScope", "$timeout", "$filter", "navKey", "safeApply",
+        function ($scope, $element, $attrs, $window, $rootScope, $timeout, $filter, navKey, safeApply) {
 
             // Create dropdown items based on the source data items
-            $scope.loadItems = function(dataItems, selectedDataItem) {
+            $scope.loadItems = function (dataItems, selectedDataItem) {
                 var itemCount, itemIndex, item, key = $scope.keyField;
-
                 if (angular.isArray(dataItems)) {
-
-                    var foundSelected = false;
                     itemCount = $scope.items.length;
-
-                    angular.forEach(dataItems, function(dataItem, index) {
+                    angular.forEach(dataItems, function (dataItem, index) {
                         itemIndex = itemCount + index;
                         item = $scope.getItemFromDataItem(dataItem, itemIndex);
-                        if (item) {
-                            $scope.items.push(item);
-                            // If not currently filtering
-                            if (!$scope.searchText) {
-                                // Look for a matching item
-                                if (dataItem === selectedDataItem || (key && selectedDataItem && dataItem[key] == selectedDataItem[key])) {
-                                    confirmSelection(item);
-                                    foundSelected = true;
-                                }
-                            }
-                            else if ($scope.searchText.toLowerCase() === item.text.toLowerCase()) {
-                                // Search text matches item
-                                confirmSelection(item);
-                            }
-
-                            if (item.text.length > $scope.longestText.length) {
-                                if ($scope.maxCharacters && item.text.length > $scope.maxCharacters) {
-                                    $scope.longestText = item.text.substr(0, $scope.maxCharacters);
-                                }
-                                else {
-                                    $scope.longestText = item.text;
-                                }
-                            }
+                        $scope.items.push(item);
+                        if (dataItem === selectedDataItem || (key && key != "" && dataItem[key] == selectedDataItem[key])) {
+                            $scope.selectedItem = item;
+                            $scope.confirmedItem = angular.copy($scope.selectedItem);
+                            $scope.model = $scope.selectedItem.value;
+                            $scope.comboText = $scope.selectedItem.text;
+                        }
+                        if (item.text.length > $scope.longestText.length) {
+                            $scope.longestText = item.text;
                         }
                     });
-
-                    // If not currently filtering and there's no selected item, but we have an initial selection
-                    if (!$scope.searchText && $scope.initialSelection && !foundSelected) {
-                        // Create a new item
-                        item = $scope.getItemFromDataItem($scope.initialSelection, 0);
-                        if (item) {
-                            // Add it to the start of the items array
-                            $scope.items.unshift(item);
-                            // Update indexes
-                            angular.forEach($scope.items, function(item, index) {
-                                item.index = index;
-                            });
-
-                            confirmSelection(item);
-                        }
-                    }
-
-                    // If data is not filtered
-                    if (!$scope.searchText) {
-                        angular.copy($scope.items, $scope.allItems);
-                    }
-
+                    angular.copy($scope.items, $scope.allItems);
                     $scope.setListHeight();
-
-                    checkItemCount($scope.items);
                 }
             };
-
-            function processSettings() {
-                if ($scope.acSettings) {
-                    var settings = $scope.$eval($scope.acSettings);
-                    if (typeof settings === "object") {
-                        // Merge settings with default values
-                        angular.extend($scope.settings, settings);
-                    }
-                }
-                $scope.longestText = $scope.settings.placeholderText;
-
-                $scope.maxTextWidth = "";
-
-                // If maxWidth is set, limit textbox size, allowing room for dropdown icon
-                if ($scope.settings.maxWidth) {
-                    var maxWidth = parseInt($scope.settings.maxWidth);
-                    // Set an approximate limit to the number of characters to allow in $scope.longestText
-                    $scope.maxCharacters = Math.round(maxWidth / 6);
-                    $scope.maxTextWidth = (maxWidth - 100) + "px";
-                }
-            }
-
-            function checkItemCount() {
-                $scope.noItemsFound = $scope.items.length === 0;
-                $scope.noItemsAdditional = "";
-                // If no item is found clear the selected item
-                if ($scope.noItemsFound) {
-                    $scope.selectedItem = null;
-                    if ($scope.settings.comboMode && $scope.comboText && $scope.settings.allowCustomText) {
-                        $scope.noItemsAdditional = "Press Enter to Add.";
-                    }
-                }
-            }
 
             $scope.getItemFromDataItem = function(dataItem, itemIndex) {
                 var item = null;
-                if (dataItem !== null) {
-                    if ($scope.textField === null || $scope.textField === undefined && typeof dataItem === 'string') {
+                if (dataItem !== null){
+                    if ($scope.textField === null) {
                         item = { "text": dataItem, "value": dataItem, "index": itemIndex };
                     }
                     else if (dataItem[$scope.textField]) {
@@ -259,7 +147,7 @@ angular.module("acute.select", [])
             };
 
             // Set height of list according to number of visible items
-            $scope.setListHeight = function() {
+            $scope.setListHeight = function () {
                 var itemCount = $scope.items.length;
                 if (itemCount > $scope.settings.itemsInView) {
                     itemCount = $scope.settings.itemsInView;
@@ -268,54 +156,26 @@ angular.module("acute.select", [])
                 $scope.listHeight = $scope.settings.itemHeight * itemCount;
             };
 
-            $scope.$watch("model", function(newValue, oldValue) {
-                if ($scope.modelUpdating) {
-                    $scope.modelUpdating = false;
-                }
-                else if (!newValue && !oldValue) {
-                    // Do nothing
-                }
-                else if (newValue && !oldValue) {
-                    // Model no longer null
-                    $scope.setInitialSelection();
-                }
-                else if (oldValue && !newValue) {
-                    // Model cleared
-                    $scope.setInitialSelection();
-                }
-                else {
-                    // Check that the text is different
-                    if (!$scope.textField || newValue[$scope.textField] !== oldValue[$scope.textField]) {
-                        // Model has been changed in the parent scope
-                        $scope.setInitialSelection();
-                    }
-                }
-            });
-
             if ($scope.selectedItem) {
                 $scope.comboText = $scope.selectedItem.text;
             }
 
             // Close all instances when user clicks elsewhere
-            $window.onclick = function(event) {
-                closeWhenClickingElsewhere(event, function() {
+            $window.onclick = function (event) {
+                closeWhenClickingElsewhere(event, function () {
                     $scope.sentBroadcast = false;
                     $rootScope.$broadcast("ac-select-close-all");
                 });
             };
 
             // Keyboard events
-            $scope.keyHandler = function(event) {
+            $scope.keyHandler = function (event) {
 
                 if (!$scope.settings.showSearchBox) {
                     handleCharCodes(event);
                 }
 
                 var keyCode = event.which || event.keyCode;
-
-                if (keyCode === navKey.downArrow) {
-                    $scope.popupVisible = true;
-                }
 
                 if ($scope.popupVisible || keyCode === navKey.del) {
                     var stopPropagation = true;
@@ -370,12 +230,7 @@ angular.module("acute.select", [])
             }
 
             // Callback function to receive async data
-            $scope.dataCallback = function(data, searchText, offset) {
-
-                // Quit if search text has changed since the data function was called
-                if (searchText !== undefined && searchText !== $scope.searchText) {
-                    return;
-                }
+            $scope.dataCallback = function (data, matchingItemTotal) {
 
                 var selectedDataItem = null;
 
@@ -386,28 +241,21 @@ angular.module("acute.select", [])
                     selectedDataItem = $scope.selectedItem.value;
                 }
                 else {
+                    //selectedDataItem = $scope.getModelObject();
                     selectedDataItem = $scope.model;
-                }
-
-                // Clear all existing items, unless offset > 0, i.e. we're paging and getting additional items
-                if (!offset || offset == 0) {
-                    $scope.items = [];
                 }
 
                 $scope.loadItems(data, selectedDataItem);
 
-                // If not in paging mode
-                if (!$scope.settings.pageSize) {
-                    // All data is now loaded
-                    $scope.allDataLoaded = true;
-                    // Clear loadOnOpen flag to avoid re-loading when dropdown is next opened
-                    $scope.settings.loadOnOpen = false;
-                }
-                else {
+                // If data function takes only one argument, all data is now loaded
+                $scope.allDataLoaded = $scope.dataFunction.length === 1;
+                // Clear loadOnOpen flag to avoid re-loading when dropdown next opened
+                $scope.settings.loadOnOpen = false;
 
-                    // All data is loaded if fewer than [pageSize] items were returned
-                    $scope.allDataLoaded = data.length < $scope.settings.pageSize;
-
+                // If a matchingItemTotal value is returned, we are in paging mode
+                if (matchingItemTotal) {
+                    $scope.paging = true;
+                    $scope.matchingItemTotal = matchingItemTotal;
                     // If user was scrolling down
                     if ($scope.requestedItemIndex) {
                         // Select first of the newly loaded items (if present)
@@ -417,49 +265,38 @@ angular.module("acute.select", [])
                         }
                         $scope.requestedItemIndex = null;
                     }
+                    // Show loading message if not all items yet loaded
+                    $scope.showLoadingMessage = $scope.items.length < matchingItemTotal;
                 }
-
-                if ($scope.allDataLoaded) {
-                    $scope.previousSearchText = $scope.searchText;
-                }
-
                 $scope.loading = false;
-                $scope.loadMessage = "Load more...";
-
             };
 
-            $scope.findData = function() {
+            $scope.findData = function () {
                 filterData($scope.searchText);
             };
 
-            $scope.comboTextChange = function() {
+            $scope.comboTextChange = function () {
                 $scope.popupVisible = true;
                 $scope.ensureDataLoaded();
                 $scope.searchText = $scope.comboText;
-                if ($scope.comboText == '' && $scope.settings.allowClear) {
-                    clearSelection();
-                }
-
                 filterData($scope.comboText);
             };
 
             // Show/hide popup
-            $scope.togglePopup = function() {
+            $scope.togglePopup = function () {
                 $scope.popupVisible = !$scope.popupVisible;
                 if ($scope.popupVisible) {
-                    // Pop-up opening
                     if ($scope.settings.comboMode) {
-                        $timeout(function() { $scope.comboFocus = true; });
+                        $timeout(function () { $scope.comboFocus = true; });
                     }
                     else {
-                        $timeout(function() { $scope.searchBoxFocus = true; });
+                        $timeout(function () { $scope.searchBoxFocus = true; });
                     }
                     $scope.ensureDataLoaded();
-                    clearClientFilter();
                 }
             };
 
-            $scope.ensureDataLoaded = function() {
+            $scope.ensureDataLoaded = function () {
                 if (!$scope.allDataLoaded && $scope.dataFunction && $scope.settings.loadOnOpen) {
                     // Load initial data (args are callback function, search text and item offset)
                     $scope.dataFunction($scope.dataCallback, "", 0);
@@ -467,17 +304,17 @@ angular.module("acute.select", [])
             };
 
             // When clicking on the ac-select-main div
-            $scope.mainClick = function() {
+            $scope.mainClick = function () {
                 // Close any other ac-select instances
                 $scope.sentBroadcast = true;
                 $rootScope.$broadcast("ac-select-close-all");
             };
 
-            $scope.$on("ac-select-close-all", function() {
-                if (!$scope.sentBroadcast && $scope.popupVisible) {
+            $scope.$on("ac-select-close-all", function () {
+                if (!$scope.sentBroadcast) {
                     $scope.popupVisible = false;
                     safeApply($scope);
-                    // If clear is not allowed and we're in combo mode
+                    // If clear is not allowed and we"re in combo mode
                     if (!$scope.settings.allowClear && $scope.settings.comboMode && $scope.selectedItem) {
                         // Update the combo text to reflect the currently selected item
                         $scope.comboText = $scope.confirmedItem.text;
@@ -488,11 +325,12 @@ angular.module("acute.select", [])
                 }
             });
 
-            $scope.itemClick = function(i) {
-                confirmSelection($scope.items[i]);
+            $scope.itemClick = function (i) {
+                $scope.selectedItem = $scope.items[i];
+                selectionConfirmed();
             };
 
-            $scope.getItemClass = function(i) {
+            $scope.getItemClass = function (i) {
                 if ($scope.selectedItem && $scope.items[i].value === $scope.selectedItem.value) {
                     return "ac-select-highlight";
                 }
@@ -501,15 +339,15 @@ angular.module("acute.select", [])
                 }
             };
 
-            $scope.addButtonClick = function() {
+            $scope.addButtonClick = function () {
                 if (customAddRequest()) {
-                    confirmSelection(null);
+                    selectionConfirmed();
                 }
             };
 
-            $scope.listScrolled = function(scrollPosition) {
+            $scope.listScrolled = function (scrollPosition) {
                 $scope.scrollPosition = scrollPosition;
-                if ($scope.settings.pageSize) {
+                if ($scope.paging) {
                     var totalHeight = $scope.items.length * $scope.settings.itemHeight;
                     // If scrolled past the last item
                     if (scrollPosition > totalHeight - $scope.listHeight) {
@@ -519,11 +357,9 @@ angular.module("acute.select", [])
             };
 
             // Load further data when paging is enabled
-            $scope.loadMore = function() {
-                if (!$scope.loading) {
+            $scope.loadMore = function () {
+                if (!$scope.loading && $scope.showLoadingMessage) {
                     $scope.loading = true;
-                    $scope.loadMessage = "Loading...";
-
                     var offSet = $scope.items.length;
                     $scope.dataFunction($scope.dataCallback, $scope.searchText, offSet);
                 }
@@ -531,18 +367,13 @@ angular.module("acute.select", [])
 
             // Private functions
 
-            function confirmSelection(item, forceClose) {
-
-                $scope.selectedItem = item;
-
-                var oldConfirmedItem = $scope.confirmedItem;
+            function selectionConfirmed(forceClose) {
                 var close = false;
                 if ($scope.selectedItem) {
                     $scope.confirmedItem = angular.copy($scope.selectedItem);
-                    $scope.modelUpdating = true;
                     $scope.model = $scope.selectedItem.value;
                     $scope.comboText = $scope.selectedItem.text;
-                    close = true;
+                    close = true
                 }
                 else {
                     // Try adding as a custom item
@@ -550,17 +381,7 @@ angular.module("acute.select", [])
                         close = true;
                     }
                 }
-
-                // If the pop-up is visible (i.e. not setting an initial selection)
-                if ($scope.popupVisible) {
-                    fireChangeEvent();
-                }
-
-                // Clear any initial selection                
-                $scope.initialSelection = null;
-                $scope.initialItem == null;
-
-                if ($scope.popupVisible && (close || forceClose)) {
+                if (close || forceClose) {
                     $scope.popupVisible = false;
                     $scope.wrapperFocus = true;
                     // If all data is loaded
@@ -570,11 +391,9 @@ angular.module("acute.select", [])
                         clearClientFilter();
                     }
                 }
-            }
 
-            function fireChangeEvent() {
                 // Fire acChange function, if specified
-                if (typeof $scope.acChange === 'function') {
+                if (typeof $scope.acChange === "function") {
                     $scope.acChange({ value: $scope.selectedItem ? $scope.selectedItem.value : null });
                 }
             }
@@ -588,12 +407,6 @@ angular.module("acute.select", [])
                         // Create new data item
                         dataItem = {};
                         dataItem[$scope.textField] = customText;
-
-                        // add the key field if it is defined.
-                        if ($scope.keyField) {
-                            dataItem[$scope.keyField] = customText;
-                        }
-                        $scope.modelUpdating = true;
                         $scope.model = dataItem;
                         $scope.confirmedItem = $scope.selectedItem = { "text": customText, "value": dataItem, "index": -1 };
                         $scope.items.push($scope.selectedItem);
@@ -605,7 +418,7 @@ angular.module("acute.select", [])
             }
 
             function enterKey() {
-                confirmSelection($scope.selectedItem);
+                selectionConfirmed();
             }
 
             function downArrowKey() {
@@ -619,7 +432,7 @@ angular.module("acute.select", [])
                             ensureItemVisible($scope.selectedItem);
                             selected = true;
                         }
-                        else if ($scope.settings.pageSize && $scope.items.length >= $scope.settings.pageSize) {
+                        else if ($scope.paging) {
                             $scope.requestedItemIndex = newIndex;
                             $scope.scrollTo += $scope.settings.itemHeight;
                             $scope.loadMore();
@@ -709,15 +522,14 @@ angular.module("acute.select", [])
             function escapeKey() {
                 // Revert to last confirmed selection
                 $scope.selectedItem = $scope.confirmedItem;
-                confirmSelection($scope.selectedItem, true);
+                selectionConfirmed(true);
             }
 
             function deleteKey(event) {
                 if ($scope.settings.allowClear) {
                     var srcElement = angular.element(event.target);
-                    // If in combo textbox, ignore
-                    if (srcElement.hasClass('ac-select-text')) {
-                        event.stopPropagation();
+                    if (srcElement.hasClass("ac-select-text")) {
+                        event.stopPropagation = true;
                     }
                     else {
                         clearSelection();
@@ -726,18 +538,11 @@ angular.module("acute.select", [])
             }
 
             function clearSelection() {
-                var oldConfirmedItem = $scope.confirmedItem;
                 $scope.selectedItem = null;
                 $scope.confirmedItem = null;
-                $scope.modelUpdating = true;
                 $scope.model = null;
-                $scope.initialSelection = null;
                 $scope.scrollTo = 0;
                 $scope.comboText = "";
-
-                if (oldConfirmedItem !== null) {
-                    fireChangeEvent();
-                }
             }
 
             function ensureItemVisible(item) {
@@ -752,83 +557,42 @@ angular.module("acute.select", [])
             }
 
             function filterData() {
-
-                var itemCount = $scope.allItems.length;
-
-                // If search text is blank OR paging is enabled && current number of items is >= pageSize (or zero)
-                if ($scope.searchText === "" || ($scope.settings.pageSize && (itemCount >= $scope.settings.pageSize || itemCount === 0))) {
-                    // Data needs to be re-loaded.
-                    $scope.allDataLoaded = false;
-                }
-
+                $scope.showLoadingMessage = false;
+                //$scope.selectedItem = null;
                 if ($scope.allDataLoaded) {
-
-                    var itemsToFilter = $scope.allItems;
-
-                    // If search text includes the previous search
-                    if ($scope.previousSearchText && $scope.searchText.indexOf($scope.previousSearchText) != -1) {
-                        // We can refine the filtering, without checking all items
-                        itemsToFilter = $scope.items;
-                    }
-
                     if ($scope.settings.filterType == "contains") {
-                        $scope.items = $filter("filter")(itemsToFilter, function(item) {
-                            // Check for match at start of items only
-                            return item.text.toLowerCase().indexOf($scope.searchText.toLowerCase()) > -1;
-                        });
+                        $scope.items = $filter("filter")($scope.allItems, $scope.searchText);
                     }
                     else {
-                        $scope.items = $filter("filter")(itemsToFilter, function(item) {
+                        $scope.items = $filter("filter")($scope.allItems, function (item) {
                             // Check for match at start of items only
                             return item.text.substr(0, $scope.searchText.length).toLowerCase() === $scope.searchText.toLowerCase();
                         });
                     }
                     // Update indexes
-                    angular.forEach($scope.items, function(item, index) {
+                    angular.forEach($scope.items, function (item, index) {
                         item.index = index;
                     });
-
-                    checkItemCount();
                 }
                 else {
                     // Pass search text to data function (if it takes 2 or more arguments)
-                    if ($scope.dataFunction && $scope.dataFunction.length >= 2) {
-                        // If search text has enough chars (or it's just been cleared)
-                        if ($scope.searchText.length >= $scope.settings.minSearchLength || $scope.searchText == "") {
-                            // Get data
-                            $scope.dataFunction($scope.dataCallback, $scope.searchText, 0);
-                        }
+                    $scope.items = [];
+                    if ($scope.dataFunction && $scope.dataFunction.length >= 2
+                        && $scope.searchText.length >= $scope.settings.minSearchLength) {
+                        $scope.dataFunction($scope.dataCallback, $scope.searchText, 0);
                     }
                 }
 
-                // If narrowed down to one item (and search text isn't a subset of the previous search), select it
-                if ($scope.items.length === 1 && $scope.previousSearchText.indexOf($scope.searchText) === -1) {
+                $scope.setListHeight();
+
+                // If narrowed down to one item, select it
+                if ($scope.items.length === 1) {
                     $scope.matchFound = true;
                     $scope.selectedItem = $scope.items[0];
                 }
                 else {
-                    // See if the search text exactly matches one of the items
-                    $scope.matchFound = searchTextMatchesItem();
+                    $scope.matchFound = false;
                 }
-
-                $scope.previousSearchText = $scope.searchText
-                $scope.setListHeight();
-            }
-
-            // Look for an item with text that exactly matches the search text
-            function searchTextMatchesItem() {
-                var i, valid = false;
-                if ($scope.searchText.length > 0) {
-                    for (i = 0; i < $scope.items.length; i++) {
-                        if ($scope.searchText.toLowerCase() === $scope.items[i].text.toLowerCase()) {
-                            $scope.selectedItem = $scope.items[i];
-                            $scope.searchText = $scope.comboText = $scope.selectedItem.text;
-                            valid = true;
-                            break;
-                        }
-                    }
-                }
-                return valid;
             }
 
             // Remove any client filtering of items
@@ -848,7 +612,7 @@ angular.module("acute.select", [])
                 // Check up to 10 levels up the DOM tree
                 for (var i = 0; i < 10 && element && !clickedOnPopup; i++) {
                     var elementClasses = element.classList;
-                    if (elementClasses !== undefined && elementClasses.contains('ac-select-wrapper')) {
+                    if (elementClasses.contains("ac-select-wrapper")) {
                         clickedOnPopup = true;
                     }
                     else {
@@ -860,115 +624,93 @@ angular.module("acute.select", [])
                     callbackFn();
                 }
             }
-
-            function log(text) {
-                if (console && console.log && $scope.settings.debug) {
-                    console.log("ac-select:- " + text);
-                }
-            }
         }
-    };
-})
+    ]};
+}])
 
 // Directive to set focus to an element when a specified expression is true
-.directive('acFocus', function($timeout, $parse, safeApply) {
+.directive("acFocus", ["$timeout", "$parse",function ($timeout, $parse) {
     return {
         restrict: "A",
-        link: function(scope, element, attributes) {
+        link: function (scope, element, attributes) {
             var setFocus = $parse(attributes.acFocus);
-            scope.$watch(setFocus, function(value) {
+            scope.$watch(setFocus, function (value) {
                 if (value === true) {
-                    $timeout(function() {
+                    $timeout(function () {
                         element[0].focus();
                     });
                 }
             });
-            // Set the "setFocus" attribute value to 'false' on blur event
+            // Set the "setFocus" attribute value to "false" on blur event
             // using the "assign" method on the function that $parse returns
-            element.bind('blur', function() {
-                safeApply(scope, function() { setFocus.assign(scope, false) });
+            element.bind("blur", function () {
+                scope.$apply(setFocus.assign(scope, false));
             });
         }
     };
-})
-
-.directive('acSelectOnFocus', function() {
-    return {
-        restrict: 'A',
-        scope: {
-            acSelectOnFocus: "="
-        },
-        link: function(scope, element, attrs) {
-            element.bind('focus', function() {
-                if (scope.acSelectOnFocus !== false && scope.acSelectOnFocus !== 'false') {
-                    element[0].select();
-                }
-            });
-        }
-    };
-})
+}])
 
 // Directive for a scroll container. Set the "ac-scroll-to" attribute to an expression and when its value changes,
 // the div will scroll to that position
-.directive('acScrollTo', function() {
+.directive("acScrollTo", [function () {
     return {
         restrict: "A",
         scope: false,
-        controller: function($scope, $element, $attrs) {
+        controller: ["$scope","$element","$attrs",function ($scope, $element, $attrs) {
             var expression = $attrs.acScrollTo;
-            $scope.$watch(expression, function() {
+            $scope.$watch(expression, function () {
                 var scrollTop = $scope.$eval(expression);
                 angular.element($element)[0].scrollTop = scrollTop;
             });
         }
-    };
-})
+    ]};
+}])
 
 // Call a function when the element is scrolled
-// E.g. ac-on-scroll="listScrolled()" 
+// E.g. ac-on-scroll="listScrolled()"
 // N.B. take care not to use the result to directly update an acScrollTo expression
 // as this will result in an infinite recursion!
-.directive('acOnScroll', function() {
+.directive("acOnScroll", [function () {
     return {
         restrict: "A",
-        link: function(scope, element, attrs) {
+        link: function (scope, element, attrs) {
             var callbackName = attrs.acOnScroll;
             if (callbackName.indexOf("()") === callbackName.length - 2) {
                 callbackName = callbackName.substr(0, callbackName.length - 2);
             }
             var callback = scope[callbackName];
             if (typeof callback === "function") {
-                element.bind("scroll", function() {
+                element.bind("scroll", function () {
                     callback(element[0].scrollTop);
                 });
             }
         }
     };
-})
+}])
 
-.factory('navKey', function() {
+.factory("navKey", [function () {
     return {
-        'backspace': 8,
-        'tab': 9,
-        'enter': 13,
-        'escape': 27,
-        'pageUp': 33,
-        'pageDown': 34,
-        'end': 35,
-        'home': 36,
-        'leftArrow': 37,
-        'upArrow': 38,
-        'rightArrow': 39,
-        'downArrow': 40,
-        'del': 46
+        "backspace": 8,
+        "tab": 9,
+        "enter": 13,
+        "escape": 27,
+        "pageUp": 33,
+        "pageDown": 34,
+        "end": 35,
+        "home": 36,
+        "leftArrow": 37,
+        "upArrow": 38,
+        "rightArrow": 39,
+        "downArrow": 40,
+        "del": 46
     };
-})
+}])
 
 // safeApply service, courtesy Alex Vanston and Andrew Reutter
-.factory('safeApply', [function($rootScope) {
-    return function($scope, fn) {
+.factory("safeApply", [function () {
+    return function ($scope, fn) {
         var phase = $scope.$root.$$phase;
-        if (phase == '$apply' || phase == '$digest') {
+        if (phase === "$apply" || phase === "$digest") {
             if (fn) {
                 $scope.$eval(fn);
             }
@@ -979,35 +721,30 @@ angular.module("acute.select", [])
                 $scope.$apply();
             }
         }
-    }
+    };
 }])
 
 // Service to allow host pages to change settings for all instances (in their module.run function)
-.factory('acuteSelectService', function() {
+.factory("acuteSelectService", [function () {
 
     var defaultSettings = {
         "templatePath": "/acute.select/",
         "noItemsText": "No items found.",
-        "placeholderText": "Please select...",
         "itemHeight": 24,
         "itemsInView": 10,
-        "pageSize": null,
         "minWidth": "100px",
-        "maxWidth": "",
         "showSearchBox": true,
         "comboMode": false,
-        "comboSelectOnFocus": true,
         "loadOnCreate": true,
-        "loadOnOpen": false,      // If true, while loadOnCreate is false, the load function will be called when the dropdown opens
+        "loadOnOpen": false,      // If true, while loadOnCreate is false, the load function will be called the when dropdown opens
         "allowCustomText": false,
-        "minSearchLength": 0,
+        "minSearchLength": 1,
         "filterType": "contains",    // or "start"
-        "allowClear": true,
-        "debug": false
+        "allowClear": true
     };
 
     return {
-        getSettings: function() {
+        getSettings: function () {
             // Add trailing "/" to template path if not present
             var len = defaultSettings.templatePath.length;
             if (len > 0 && defaultSettings.templatePath.substr(len - 1, 1) !== "/") {
@@ -1015,21 +752,10 @@ angular.module("acute.select", [])
             }
             return angular.copy(defaultSettings);
         },
-
-        updateSetting: function(settingName, value) {
-            updateSingleSetting(settingName, value);
-        },
-
-        updateSettings: function(settings) {
-            for (name in settings) {
-                updateSingleSetting(name, settings[name]);
+        updateSetting: function (settingName, value) {
+            if (defaultSettings.hasOwnProperty(settingName)) {
+                defaultSettings[settingName] = value;
             }
         }
     };
-
-    function updateSingleSetting(settingName, value) {
-        if (defaultSettings.hasOwnProperty(settingName)) {
-            defaultSettings[settingName] = value;
-        }
-    }
-});
+}]);
