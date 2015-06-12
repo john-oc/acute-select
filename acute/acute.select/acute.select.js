@@ -585,13 +585,15 @@ angular.module("acute.select", [])
                 if ($scope.settings.allowCustomText && !$scope.matchFound) {
                     customText = $scope.searchText;
                     if (customText.length > 0) {
-                        // Create new data item
-                        dataItem = {};
-                        dataItem[$scope.textField] = customText;
-
                         // add the key field if it is defined.
                         if ($scope.keyField) {
+                            // Create new data item
+                            dataItem = {};
                             dataItem[$scope.keyField] = customText;
+                        }
+                        // set data item to custom text.
+                        else {
+                            dataItem = customText;
                         }
                         $scope.modelUpdating = true;
                         $scope.model = dataItem;
