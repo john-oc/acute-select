@@ -1,6 +1,6 @@
 ﻿angular.module("acute.core.directives", [])
 // Directive to set focus to an element when a specified expression is true
-.directive('acuteFocus', function ($timeout, $parse) {
+.directive('acuteFocus', ['$timeout','$parse',function ($timeout, $parse) {
     return {
         restrict: "A",
         link: function (scope, element, attributes) {
@@ -19,10 +19,10 @@
             });
         }
     };
-})
+}])
 
 // Directive for a scroll container. Set acute-scroll-top to an expression and the div will scroll when it changes
-.directive('acScrollTo', function () {
+.directive('acScrollTo', [function () {
     return {
         restrict: "A",
         scope: false,
@@ -34,13 +34,13 @@
             });
         }
     };
-})
+}])
 
 // Call a function when the element is scrolled
-// E.g. ac-on-scroll="listScrolled()" 
+// E.g. ac-on-scroll="listScrolled()"
 // N.B. take care not to use the result to directly update an acScrollTo expression
 // as this will result in an infinite recursion!
-.directive('acOnScroll', function () {
+.directive('acOnScroll', [function () {
     return {
         restrict: "A",
         link: function (scope, element, attrs) {
@@ -56,4 +56,4 @@
             }
         }
     };
-});
+}]);

@@ -11,7 +11,7 @@
 // Note:- ac-options works like ng-options, but does not support option groups
 
 angular.module("acute.select", [])
-.directive("acSelect", function($parse, acuteSelectService) {
+.directive("acSelect", ["$parse", "acuteSelectService", function($parse, acuteSelectService) {
     var defaultSettings = acuteSelectService.getSettings();
     return {
         restrict: "EAC",
@@ -73,7 +73,7 @@ angular.module("acute.select", [])
 
                     // See if a data load function is specified, i.e. name ends in "()"
                     if (dataName.indexOf("()") === dataName.length - 2) {
-                        dataName = dataName.substr(0, dataName.length - 2)
+                        dataName = dataName.substr(0, dataName.length - 2);
                         // Get a reference to the data function
                         var dataFunction = $scope.$parent.$eval(dataName);
                         if (typeof dataFunction === "function") {
@@ -94,7 +94,7 @@ angular.module("acute.select", [])
                         // Watch for any change to the data
                         $scope.$parent.$watch(dataName, function(newVal, oldVal) {
                             if (newVal !== oldVal && angular.isArray(newVal)) {
-                                loadStaticData(newVal)
+                                loadStaticData(newVal);
                             }
                         });
                     }
@@ -556,7 +556,7 @@ angular.module("acute.select", [])
                     fireChangeEvent();
                 }
 
-                // Clear any initial selection                
+                // Clear any initial selection
                 $scope.initialSelection = null;
                 $scope.initialItem == null;
 
@@ -868,10 +868,10 @@ angular.module("acute.select", [])
             }
         }
     };
-})
+}])
 
 // Directive to set focus to an element when a specified expression is true
-.directive('acFocus', function($timeout, $parse, safeApply) {
+.directive('acFocus', ["$timeout","$parse","safeApply",function($timeout, $parse, safeApply) {
     return {
         restrict: "A",
         link: function(scope, element, attributes) {
@@ -890,9 +890,9 @@ angular.module("acute.select", [])
             });
         }
     };
-})
+}])
 
-.directive('acSelectOnFocus', function() {
+.directive('acSelectOnFocus', [function() {
     return {
         restrict: 'A',
         scope: {
@@ -906,11 +906,11 @@ angular.module("acute.select", [])
             });
         }
     };
-})
+}])
 
 // Directive for a scroll container. Set the "ac-scroll-to" attribute to an expression and when its value changes,
 // the div will scroll to that position
-.directive('acScrollTo', function() {
+.directive('acScrollTo', [function() {
     return {
         restrict: "A",
         scope: false,
@@ -922,13 +922,13 @@ angular.module("acute.select", [])
             });
         }
     };
-})
+}])
 
 // Call a function when the element is scrolled
-// E.g. ac-on-scroll="listScrolled()" 
+// E.g. ac-on-scroll="listScrolled()"
 // N.B. take care not to use the result to directly update an acScrollTo expression
 // as this will result in an infinite recursion!
-.directive('acOnScroll', function() {
+.directive('acOnScroll', [function() {
     return {
         restrict: "A",
         link: function(scope, element, attrs) {
@@ -944,9 +944,9 @@ angular.module("acute.select", [])
             }
         }
     };
-})
+}])
 
-.factory('navKey', function() {
+.factory('navKey', [function() {
     return {
         'backspace': 8,
         'tab': 9,
@@ -962,10 +962,10 @@ angular.module("acute.select", [])
         'downArrow': 40,
         'del': 46
     };
-})
+}])
 
 // safeApply service, courtesy Alex Vanston and Andrew Reutter
-.factory('safeApply', [function($rootScope) {
+.factory('safeApply', ["$rootScope", function($rootScope) {
     return function($scope, fn) {
         var phase = $scope.$root.$$phase;
         if (phase == '$apply' || phase == '$digest') {
@@ -979,11 +979,11 @@ angular.module("acute.select", [])
                 $scope.$apply();
             }
         }
-    }
+    };
 }])
 
 // Service to allow host pages to change settings for all instances (in their module.run function)
-.factory('acuteSelectService', function() {
+.factory('acuteSelectService', [function() {
 
     var defaultSettings = {
         "templatePath": "/acute.select/",
@@ -1032,4 +1032,4 @@ angular.module("acute.select", [])
             defaultSettings[settingName] = value;
         }
     }
-});
+}]);

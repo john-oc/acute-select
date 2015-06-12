@@ -2,7 +2,7 @@
 angular.module("acute.core.services", [])
 
 // safeApply service, courtesy Alex Vanston and Andrew Reutter
-.factory('safeApply', [function ($rootScope) {
+.factory('safeApply', ["$rootScope", function ($rootScope) {
     return function ($scope, fn) {
         var phase = $scope.$root.$$phase;
         if (phase == '$apply' || phase == '$digest') {
@@ -16,10 +16,10 @@ angular.module("acute.core.services", [])
                 $scope.$apply();
             }
         }
-    }
+    };
 }])
 
-.factory('keyCode', function () {
+.factory('keyCode', [function () {
     return {
         'backspace': 8,
         'tab': 9,
@@ -109,4 +109,4 @@ angular.module("acute.core.services", [])
         'slash': 191,
         'backslash': 220
     };
-});
+}]);
