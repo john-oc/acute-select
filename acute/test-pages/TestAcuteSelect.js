@@ -1,5 +1,7 @@
 ﻿/// <reference path="../lib/angular.1.2.6.js" />
 
+"use strict";
+
 angular.module("acuteSelectTest", ["acute.select"])
 
 .run(function (acuteSelectService) {
@@ -14,6 +16,10 @@ angular.module("acuteSelectTest", ["acute.select"])
         selectedTextItem: 'Triangle'
     };
 
+    $scope.flags = {
+        refresh: false
+    };
+
     $scope.colours = [
       { name: 'black', shade: 'dark' },
       { name: 'white', shade: 'light' },
@@ -24,6 +30,7 @@ angular.module("acuteSelectTest", ["acute.select"])
 
     $scope.things = [];
     $scope.selectedThing = null;
+    $scope.serverItems = [];
 
     $scope.message = "Ready.";
 
@@ -123,7 +130,7 @@ angular.module("acuteSelectTest", ["acute.select"])
         // Get states that contain the search text
         var filteredData = $filter("filter")($scope.allStates, searchText);
         // Get 10 states, starting at the specified offset
-        data = filteredData.slice(offset, offset + 10);
+        var data = filteredData.slice(offset, offset + 10);
         if (offset === 0) {
             // Return data, searchtext + offset
             callback(data, searchText, filteredData.length);
@@ -144,6 +151,7 @@ angular.module("acuteSelectTest", ["acute.select"])
     $http.post("TestWS.asmx/GetItemData", {})
     .success(function(result) {
         $scope.serverItems = result.d;
+        $scope.flags.refresh = true;
     })
     .error(function(a,b,c) {
         alert("Web service call failed!");

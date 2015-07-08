@@ -4,12 +4,14 @@
     <title></title>
     <!--[if lte IE 8]>
       <script type="text/javascript" src="/Scripts/json2.js"></script>
+      <script type="text/javascript">
         document.createElement('ac-select');
       </script>
     <![endif]-->
 
-    <script src="../lib/angular%201.3.3/angular.min.js"></script>
-    <!--<script type="text/javascript" src="../lib/angular.1.2.26.js"></script>-->
+    <!--<script src="../lib/angular.1.2.7/angular.js"></script>-->
+    <!--<script src="../lib/angular.1.3.3/angular.min.js"></script>-->
+    <script type="text/javascript" src="../lib/angular.1.2.26.js"></script>
     <script type="text/javascript" src="../acute.select/acute.select.js"></script>
     <link href="../acute.select/acute.select.css" rel="stylesheet" />
     <script type="text/javascript" src="TestAcuteSelect.js"></script>
@@ -32,7 +34,7 @@
         <p>{{message}}</p>
 
         Data from Web Service<br />
-        <ac-select class="statelist" ac-model="selectedServerItem" ac-options="for serverItem in serverItems"></ac-select>
+        <ac-select class="statelist" ac-model="selectedServerItem" ac-options="for serverItem in serverItems" ac-refresh="flags.refresh"></ac-select>
         <br /><br />
 
         String Array<br />
