@@ -26,7 +26,9 @@ namespace acute.test_pages
             {
                 "Take",
                 "Your",
-                "Pick"
+                "Pick",
+                "From",
+                "These"
             };
         }
     }

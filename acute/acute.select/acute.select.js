@@ -22,7 +22,8 @@ angular.module("acute.select", [])
             "acChange": "&",
             "keyField": "@acKey",
             "acRefresh": "=",
-            "acFocusWhen": "="
+            "acFocusWhen": "=",
+            "id": "@"
         },
         replace: true,
         templateUrl: defaultSettings.templatePath + "acute.select.htm",
@@ -51,7 +52,7 @@ angular.module("acute.select", [])
 
                 // Check that ac-options and ac-model values are set
                 if (!$scope.acOptions || $scope.model === undefined) {
-                    throw "ac-model and ac-options attributes must be set";
+                    throw "ac-options and ac-model attributes must be set";
                 }
 
                 processSettings();
@@ -63,6 +64,9 @@ angular.module("acute.select", [])
                 var len = words.length;
                 $scope.textField = null;
                 $scope.dataFunction = null;
+
+                // Save initial selection, if any
+                $scope.setInitialSelection();
 
                 if (len > 3) {
                     if (len > 4) {
@@ -90,32 +94,19 @@ angular.module("acute.select", [])
                     else {
                         // Get the data from the parent $scope
                         var dataItems = $scope.$parent.$eval(dataName);
-                        loadStaticData(dataItems);
-                        // Watch for any change to the data
-                        $scope.$parent.$watch(dataName, function(newVal, oldVal) {
-                            if (newVal !== oldVal && angular.isArray(newVal)) {
-                                loadStaticData(newVal)
-                            }
-                        });
+                        // Create dropdown items
+                        $scope.loadItems(dataItems, $scope.model);
+                        // Save selected item
+                        $scope.confirmedItem = angular.copy($scope.selectedItem);
+                        $scope.allDataLoaded = true;
                     }
                 }
-
-                // Save initial selection, if any
-                $scope.setInitialSelection();
             };
-
-            function loadStaticData(dataItems) {
-                // Create dropdown items
-                $scope.loadItems(dataItems, $scope.model);
-                // Save selected item
-                $scope.confirmedItem = angular.copy($scope.selectedItem);
-                $scope.allDataLoaded = $scope.items.length > 0;
-            }
 
             // If the ac-refresh attribute is set, watch it. If its value gets set to true, re-initialise.
             if ($scope.acRefresh !== undefined) {
                 $scope.$watch("acRefresh", function(newValue, oldValue) {
-                    if (newValue === true) {
+                    if (newValue === true && newValue !== oldValue) {
                         $scope.initialise();
                     }
                 });
@@ -125,7 +116,7 @@ angular.module("acute.select", [])
             // give focus to either the combo or search text box
             if ($scope.acFocusWhen !== undefined) {
                 $scope.$watch("acFocusWhen", function(newValue, oldValue) {
-                    if (newValue === true) {
+                    if (newValue === true && newValue !== oldValue) {
                         // Set flag to fire the ac-focus directive
                         if ($scope.settings.comboMode) {
                             $scope.comboFocus = true;
@@ -171,7 +162,7 @@ angular.module("acute.select", [])
                             }
                             else if ($scope.searchText.toLowerCase() === item.text.toLowerCase()) {
                                 // Search text matches item
-                                confirmSelection(item);
+                                $scope.selectedItem = item;
                             }
 
                             if (item.text.length > $scope.longestText.length) {
@@ -231,24 +222,38 @@ angular.module("acute.select", [])
                     $scope.maxCharacters = Math.round(maxWidth / 6);
                     $scope.maxTextWidth = (maxWidth - 100) + "px";
                 }
+
+                // Pop-up needs position:absolute *unless* entire component is being positioned absolutely, in which we need to change it to "static"
+                var popUpPosition = $scope.settings.positionAbsolute ? "static" : "absolute";
+                $scope.popupStyles = {
+                    "minWidth": $scope.settings.minWidth,
+                    "position": popUpPosition
+                };
             }
 
             function checkItemCount() {
                 $scope.noItemsFound = $scope.items.length === 0;
-                $scope.noItemsAdditional = "";
-                // If no item is found clear the selected item
+                $scope.showAddMessage = false;
+                //GC: If no item is found clear the selected item
                 if ($scope.noItemsFound) {
                     $scope.selectedItem = null;
-                    if ($scope.settings.comboMode && $scope.comboText && $scope.settings.allowCustomText) {
-                        $scope.noItemsAdditional = "Press Enter to Add.";
+                }
+
+                // If in combo mode and can add custom values
+                if ($scope.settings.comboMode && $scope.comboText && $scope.settings.allowCustomText) {
+                    // If combo text doesn't match the current selected item text, show message to add.
+                    var selectedText = $scope.selectedItem ? $scope.selectedItem.text : "";
+
+                    if ($scope.comboText != selectedText) {
+                        $scope.showAddMessage = true;
                     }
                 }
             }
 
             $scope.getItemFromDataItem = function(dataItem, itemIndex) {
                 var item = null;
-                if (dataItem !== null) {
-                    if ($scope.textField === null || $scope.textField === undefined && typeof dataItem === 'string') {
+                if (dataItem !== null){
+                    if ($scope.textField === null && typeof dataItem === 'string') {
                         item = { "text": dataItem, "value": dataItem, "index": itemIndex };
                     }
                     else if (dataItem[$scope.textField]) {
@@ -269,25 +274,27 @@ angular.module("acute.select", [])
             };
 
             $scope.$watch("model", function(newValue, oldValue) {
-                if ($scope.modelUpdating) {
-                    $scope.modelUpdating = false;
-                }
-                else if (!newValue && !oldValue) {
-                    // Do nothing
-                }
-                else if (newValue && !oldValue) {
-                    // Model no longer null
-                    $scope.setInitialSelection();
-                }
-                else if (oldValue && !newValue) {
-                    // Model cleared
-                    $scope.setInitialSelection();
-                }
-                else {
-                    // Check that the text is different
-                    if (!$scope.textField || newValue[$scope.textField] !== oldValue[$scope.textField]) {
-                        // Model has been changed in the parent scope
+                if (newValue != oldValue) {
+                    if ($scope.modelUpdating) {
+                        $scope.modelUpdating = false;
+                    }
+                    else if (!newValue && !oldValue) {
+                        // Do nothing
+                    }
+                    else if (newValue && !oldValue) {
+                        // Model no longer null
                         $scope.setInitialSelection();
+                    }
+                    else if (oldValue && !newValue) {
+                        // Model cleared
+                        $scope.setInitialSelection();
+                    }
+                    else {
+                        // Check that the text is different
+                        if (!$scope.textField || newValue[$scope.textField] !== oldValue[$scope.textField]) {
+                            // Model has been changed in the parent scope
+                            $scope.setInitialSelection();
+                        }
                     }
                 }
             });
@@ -317,7 +324,10 @@ angular.module("acute.select", [])
                     $scope.popupVisible = true;
                 }
 
-                if ($scope.popupVisible || keyCode === navKey.del) {
+                if (keyCode === navKey.leftArrow || keyCode === navKey.rightArrow) {
+                    event.stopPropagation();
+                }
+                else if ($scope.popupVisible || keyCode === navKey.del) {
                     var stopPropagation = true;
                     switch (keyCode) {
                         case navKey.downArrow:
@@ -353,6 +363,16 @@ angular.module("acute.select", [])
                     }
 
                     if (stopPropagation) event.stopPropagation();
+                }
+            };
+
+            // For the combo text box, handle the enter key, which can be used to add a new custom value
+            $scope.comboKeyHandler = function(event) {
+                var keyCode = event.which || event.keyCode;
+                if (keyCode === navKey.enter) {
+                    if (customAddRequest()) {
+                        confirmSelection(null);
+                    }
                 }
             };
 
@@ -569,7 +589,7 @@ angular.module("acute.select", [])
                         $scope.searchText = "";
                         clearClientFilter();
                     }
-                }
+                }                
             }
 
             function fireChangeEvent() {
@@ -580,11 +600,12 @@ angular.module("acute.select", [])
             }
 
             function customAddRequest() {
-                var customText, dataItem;
+                var customText, dataItem, selectedText;
                 var added = false;
-                if ($scope.settings.allowCustomText && !$scope.matchFound) {
-                    customText = $scope.searchText;
-                    if (customText.length > 0) {
+                if ($scope.settings.allowCustomText && $scope.showAddMessage) {
+                    customText = $scope.settings.comboMode ? $scope.comboText : $scope.searchText;
+                    selectedText = $scope.selectedItem ? $scope.selectedItem.text : "";
+                    if (customText.length > 0 && customText !== selectedText) {
                         // Create new data item
                         dataItem = {};
                         dataItem[$scope.textField] = customText;
@@ -605,7 +626,9 @@ angular.module("acute.select", [])
             }
 
             function enterKey() {
-                confirmSelection($scope.selectedItem);
+                if ($scope.popupVisible) {
+                    confirmSelection($scope.selectedItem);
+                }
             }
 
             function downArrowKey() {
@@ -809,6 +832,9 @@ angular.module("acute.select", [])
                 else {
                     // See if the search text exactly matches one of the items
                     $scope.matchFound = searchTextMatchesItem();
+                    if ($scope.matchFound) {
+                        $scope.showAddMessage = false;
+                    }
                 }
 
                 $scope.previousSearchText = $scope.searchText
@@ -876,11 +902,11 @@ angular.module("acute.select", [])
         restrict: "A",
         link: function(scope, element, attributes) {
             var setFocus = $parse(attributes.acFocus);
-            scope.$watch(setFocus, function(value) {
-                if (value === true) {
+            scope.$watch(setFocus, function(newValue, oldValue) {
+                if (newValue === true && newValue != oldValue) {
                     $timeout(function() {
                         element[0].focus();
-                    });
+                    }, 100);
                 }
             });
             // Set the "setFocus" attribute value to 'false' on blur event
@@ -916,9 +942,11 @@ angular.module("acute.select", [])
         scope: false,
         controller: function($scope, $element, $attrs) {
             var expression = $attrs.acScrollTo;
-            $scope.$watch(expression, function() {
-                var scrollTop = $scope.$eval(expression);
-                angular.element($element)[0].scrollTop = scrollTop;
+            $scope.$watch(expression, function(newValue, oldValue) {
+                if (newValue != oldValue) {
+                    var scrollTop = $scope.$eval(expression);
+                    angular.element($element)[0].scrollTop = scrollTop;
+                }
             });
         }
     };
@@ -986,7 +1014,7 @@ angular.module("acute.select", [])
 .factory('acuteSelectService', function() {
 
     var defaultSettings = {
-        "templatePath": "/acute.select/",
+        "templatePath": "/acute.select/template",
         "noItemsText": "No items found.",
         "placeholderText": "Please select...",
         "itemHeight": 24,
@@ -1003,7 +1031,8 @@ angular.module("acute.select", [])
         "minSearchLength": 0,
         "filterType": "contains",    // or "start"
         "allowClear": true,
-        "debug": false
+        "debug": false,
+        "positionAbsolute": false    // Is the select as a whole being positioned using "position: absolute"?
     };
 
     return {

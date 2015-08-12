@@ -1,12 +1,12 @@
 ﻿<div class="ac-select-wrapper" ng-keydown="keyHandler($event)" tabindex="999" ac-focus="wrapperFocus" ng-focus="comboFocus = true">
     <div ng-class="{'ac-select-main':true, 'ac-select-main-closed':!popupVisible, 'ac-select-main-open':popupVisible}" ng-click="mainClick($event)"
-      ng-style="{'minWidth': settings.minWidth }">
+      ng-style="{'minWidth': settings.minWidth, 'maxWidth': settings.maxWidth }">
         <table class="ac-select-table" ng-click="togglePopup($event)">
             <tr>
                 <td class="ac-select-display">
                     <div class="ac-select-text-wrapper" ng-show="settings.comboMode">
-                        <input type="text" class="ac-select-text" ng-model="comboText" ac-focus="comboFocus" ac-select-on-focus ng-change="comboTextChange()"
-                            placeholder="{{settings.placeholderText}}" watermark="{{settings.placeholderText}}" />
+                        <input id="{{id}}" type="text" class="ac-select-text" ng-model="comboText" ac-focus="comboFocus" ac-select-on-focus="settings.comboSelectOnFocus" ng-change="comboTextChange()"
+                            placeholder="{{settings.placeholderText}}" watermark="{{settings.placeholderText}}" ng-keydown="comboKeyHandler($event)" />
                     </div>
                     <span ng-hide="settings.comboMode">{{confirmedItem.text}}</span>
                 </td>
@@ -14,17 +14,17 @@
             </tr>
             <!--Row to get the control width right, using the original select or the longest item text. Hidden at runtime.-->
             <tr class="ac-select-widener">
-                <td class="ac-select-longest">&nbsp;{{longestText}}</td>
+                <td class="ac-select-longest" ng-style="{ 'maxWidth': maxTextWidth }">&nbsp;{{longestText}}</td>
                 <td></td>
             </tr>
         </table>
     </div>
-    <div class="ac-select-popup" ng-show="popupVisible" ng-style="{'minWidth': settings.minWidth }">
+    <div class="ac-select-popup" ng-show="popupVisible" ng-style="popupStyles">
         <div class="ac-select-search-wrapper" ng-hide="settings.comboMode || !settings.showSearchBox">
             <table>
                 <tr>
                     <td>
-                        <input type="text" class="ac-select-search" ng-model="searchText" placeholder="search" ac-focus="searchBoxFocus" ac-select-on-focus
+                        <input id="{{id}}" type="text" class="ac-select-search" ng-model="searchText" placeholder="search" ac-focus="searchBoxFocus" ac-select-on-focus
                             ng-change="findData()" ng-keydown="keyHandler($event)" />
                     </td>
                     <td class="ac-select-add" ng-class="{ 'ac-select-disabled': matchFound }" title="Add" ng-show="settings.allowCustomText" ng-click="addButtonClick()">
@@ -34,9 +34,10 @@
             </table>
         </div>
         <div class="ac-select-no-items" ng-show="noItemsFound">{{settings.noItemsText}}</div>
+        <div class="ac-select-no-items" ng-show="showAddMessage">Press Enter to Add.</div>
         <div class="ac-select-list" ng-style='{ "height": (listHeight + 6) + "px" }' ac-scroll-to="scrollTo" ac-on-scroll="listScrolled()">
             <ul>
-                <li id="{{item.id}}" ng-repeat="item in items | filter: search" 
+                <li id="{{item.id}}" ng-repeat="item in items track by $index | filter: search" title="{{item.text}}"
                     ng-class="getItemClass($index)" ng-click="itemClick($index)" ng-style="{ height: settings.itemHeight + 'px', 'line-height': settings.itemHeight + 'px' }">
                     {{item.text}}
                 </li>
