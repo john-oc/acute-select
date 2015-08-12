@@ -1,4 +1,4 @@
-﻿/// <reference path="../lib/angular.1.2.26.js" />
+﻿/// <reference path="../lib/angular.1.2.1.js" />
 
 // Directive that creates a searchable dropdown list.
 
@@ -83,8 +83,8 @@ angular.module("acute.select", [])
                         if (typeof dataFunction === "function") {
                             $scope.dataFunction = dataFunction;
                             if ($scope.settings.loadOnCreate) {
-                                // Load initial data (args are callback function, search text and item offset)
-                                $scope.dataFunction($scope.dataCallback, "", 0);
+                                // Load initial data (args are callback function, search text, item offset and filter type)
+                                $scope.dataFunction($scope.dataCallback, "", 0, $scope.settings.filterType);
                             }
                         }
                         else {
@@ -103,6 +103,12 @@ angular.module("acute.select", [])
                 }
             };
 
+            $scope.filterTypeChange = function() {
+                $scope.allDataLoaded = false;
+                $scope.filterData();
+                giveFocusToTextbox();
+            }
+
             // If the ac-refresh attribute is set, watch it. If its value gets set to true, re-initialise.
             if ($scope.acRefresh !== undefined) {
                 $scope.$watch("acRefresh", function(newValue, oldValue) {
@@ -117,16 +123,20 @@ angular.module("acute.select", [])
             if ($scope.acFocusWhen !== undefined) {
                 $scope.$watch("acFocusWhen", function(newValue, oldValue) {
                     if (newValue === true && newValue !== oldValue) {
-                        // Set flag to fire the ac-focus directive
-                        if ($scope.settings.comboMode) {
-                            $scope.comboFocus = true;
-                        }
-                        else {
-                            $scope.searchBoxFocus = true;
-                        }
                         $scope.acFocusWhen = false;
+                        giveFocusToTextbox();
                     }
                 });
+            }
+
+            function giveFocusToTextbox() {
+                // Set flag to fire the ac-focus directive
+                if ($scope.settings.comboMode) {
+                    $scope.comboFocus = true;
+                }
+                else {
+                    $scope.searchBoxFocus = true;
+                }
             }
 
             $scope.setInitialSelection = function() {
@@ -229,6 +239,14 @@ angular.module("acute.select", [])
                     "minWidth": $scope.settings.minWidth,
                     "position": popUpPosition
                 };
+
+                if ($scope.settings.showFilterOptions) {
+                    // Min width must be at least 200px to accommodate the filter options
+                    var minWidth = parseInt($scope.settings.minWidth);
+                    if (isNaN(minWidth) || minWidth < 220) {
+                        $scope.settings.minWidth = "220px";
+                    }
+                }
             }
 
             function checkItemCount() {
@@ -252,7 +270,7 @@ angular.module("acute.select", [])
 
             $scope.getItemFromDataItem = function(dataItem, itemIndex) {
                 var item = null;
-                if (dataItem !== null){
+                if (dataItem !== null) {
                     if ($scope.textField === null && typeof dataItem === 'string') {
                         item = { "text": dataItem, "value": dataItem, "index": itemIndex };
                     }
@@ -448,10 +466,6 @@ angular.module("acute.select", [])
 
             };
 
-            $scope.findData = function() {
-                filterData($scope.searchText);
-            };
-
             $scope.comboTextChange = function() {
                 $scope.popupVisible = true;
                 $scope.ensureDataLoaded();
@@ -460,7 +474,7 @@ angular.module("acute.select", [])
                     clearSelection();
                 }
 
-                filterData($scope.comboText);
+                $scope.filterData();
             };
 
             // Show/hide popup
@@ -481,8 +495,8 @@ angular.module("acute.select", [])
 
             $scope.ensureDataLoaded = function() {
                 if (!$scope.allDataLoaded && $scope.dataFunction && $scope.settings.loadOnOpen) {
-                    // Load initial data (args are callback function, search text and item offset)
-                    $scope.dataFunction($scope.dataCallback, "", 0);
+                    // Load initial data (args are callback function, search text, item offset and filter type)
+                    $scope.dataFunction($scope.dataCallback, "", 0, $scope.settings.filterType);
                 }
             };
 
@@ -545,7 +559,7 @@ angular.module("acute.select", [])
                     $scope.loadMessage = "Loading...";
 
                     var offSet = $scope.items.length;
-                    $scope.dataFunction($scope.dataCallback, $scope.searchText, offSet);
+                    $scope.dataFunction($scope.dataCallback, $scope.searchText, offSet, $scope.settings.filterType);
                 }
             }
 
@@ -589,7 +603,7 @@ angular.module("acute.select", [])
                         $scope.searchText = "";
                         clearClientFilter();
                     }
-                }                
+                }
             }
 
             function fireChangeEvent() {
@@ -774,7 +788,7 @@ angular.module("acute.select", [])
                 }
             }
 
-            function filterData() {
+            $scope.filterData = function() {
 
                 var itemCount = $scope.allItems.length;
 
@@ -819,7 +833,7 @@ angular.module("acute.select", [])
                         // If search text has enough chars (or it's just been cleared)
                         if ($scope.searchText.length >= $scope.settings.minSearchLength || $scope.searchText == "") {
                             // Get data
-                            $scope.dataFunction($scope.dataCallback, $scope.searchText, 0);
+                            $scope.dataFunction($scope.dataCallback, $scope.searchText, 0, $scope.settings.filterType);
                         }
                     }
                 }
@@ -839,7 +853,7 @@ angular.module("acute.select", [])
 
                 $scope.previousSearchText = $scope.searchText
                 $scope.setListHeight();
-            }
+            };
 
             // Look for an item with text that exactly matches the search text
             function searchTextMatchesItem() {
@@ -873,8 +887,7 @@ angular.module("acute.select", [])
                 var clickedOnPopup = false;
                 // Check up to 10 levels up the DOM tree
                 for (var i = 0; i < 10 && element && !clickedOnPopup; i++) {
-                    var elementClasses = element.classList;
-                    if (elementClasses !== undefined && elementClasses.contains('ac-select-wrapper')) {
+                    if (angular.element(element).hasClass('ac-select-wrapper')) {
                         clickedOnPopup = true;
                     }
                     else {
@@ -1029,7 +1042,8 @@ angular.module("acute.select", [])
         "loadOnOpen": false,      // If true, while loadOnCreate is false, the load function will be called when the dropdown opens
         "allowCustomText": false,
         "minSearchLength": 0,
-        "filterType": "contains",    // or "start"
+        "filterType": "contains",    // or start/startsWith, end/endsWith
+        "showFilterOptions": false,
         "allowClear": true,
         "debug": false,
         "positionAbsolute": false    // Is the select as a whole being positioned using "position: absolute"?

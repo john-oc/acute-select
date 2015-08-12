@@ -188,3 +188,11 @@ td.ac-select-add {
     cursor: pointer;
     padding-left: 12px;
 }
+
+.ac-select-filter-options {
+    font-family: Arial, sans-serif;
+    padding: 2px 4px 0px 4px;
+    font-size: 10px;
+    color: #666;
+    border-top: solid 1px #d0d0d0;
+}

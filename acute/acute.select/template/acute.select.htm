@@ -24,8 +24,8 @@
             <table>
                 <tr>
                     <td>
-                        <input id="{{id}}" type="text" class="ac-select-search" ng-model="searchText" placeholder="search" ac-focus="searchBoxFocus" ac-select-on-focus
-                            ng-change="findData()" ng-keydown="keyHandler($event)" />
+                        <input id="Text1" type="text" class="ac-select-search" ng-model="searchText" placeholder="search" ac-focus="searchBoxFocus" ac-select-on-focus
+                            ng-change="filterData()" ng-keydown="keyHandler($event)" />
                     </td>
                     <td class="ac-select-add" ng-class="{ 'ac-select-disabled': matchFound }" title="Add" ng-show="settings.allowCustomText" ng-click="addButtonClick()">
                         <div>+</div>
@@ -35,6 +35,11 @@
         </div>
         <div class="ac-select-no-items" ng-show="noItemsFound">{{settings.noItemsText}}</div>
         <div class="ac-select-no-items" ng-show="showAddMessage">Press Enter to Add.</div>
+        <div ng-if="settings.showFilterOptions" class="ac-select-filter-options">
+            <input type="radio" ng-model="settings.filterType" value="startsWith" ng-change="filterTypeChange()" />Starts With&nbsp;
+            <input type="radio" ng-model="settings.filterType" value="contains" ng-change="filterTypeChange()" />Contains&nbsp;
+            <input type="radio" ng-model="settings.filterType" value="endsWith" ng-change="filterTypeChange()" />Ends With {{filterType}}
+        </div>
         <div class="ac-select-list" ng-style='{ "height": (listHeight + 6) + "px" }' ac-scroll-to="scrollTo" ac-on-scroll="listScrolled()">
             <ul>
                 <li id="{{item.id}}" ng-repeat="item in items track by $index | filter: search" title="{{item.text}}"
