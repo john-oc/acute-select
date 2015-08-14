@@ -35,6 +35,8 @@ angular.module("acute.select", [])
         // **************************************************************
         controller: function($scope, $element, $window, $rootScope, $timeout, $filter, navKey, safeApply) {
 
+            var dataFunctionFiltering = false;
+
             $scope.initialise = function() {
                 $scope.settings = acuteSelectService.getSettings();
                 $scope.previousSearchText = "";
@@ -77,11 +79,15 @@ angular.module("acute.select", [])
 
                     // See if a data load function is specified, i.e. name ends in "()"
                     if (dataName.indexOf("()") === dataName.length - 2) {
-                        dataName = dataName.substr(0, dataName.length - 2)
+                        dataName = dataName.substr(0, dataName.length - 2);
                         // Get a reference to the data function
                         var dataFunction = $scope.$parent.$eval(dataName);
                         if (typeof dataFunction === "function") {
                             $scope.dataFunction = dataFunction;
+
+                            // See if data function accepts search filter text
+                            dataFunctionFiltering = ($scope.dataFunction.length >= 2);
+
                             if ($scope.settings.loadOnCreate) {
                                 // Load initial data (args are callback function, search text, item offset and filter type)
                                 $scope.dataFunction($scope.dataCallback, "", 0, $scope.settings.filterType);
@@ -104,10 +110,12 @@ angular.module("acute.select", [])
             };
 
             $scope.filterTypeChange = function() {
-                $scope.allDataLoaded = false;
+                if (dataFunctionFiltering) {
+                    $scope.allDataLoaded = false;
+                }
                 $scope.filterData();
                 giveFocusToTextbox();
-            }
+            };
 
             // If the ac-refresh attribute is set, watch it. If its value gets set to true, re-initialise.
             if ($scope.acRefresh !== undefined) {
@@ -561,7 +569,7 @@ angular.module("acute.select", [])
                     var offSet = $scope.items.length;
                     $scope.dataFunction($scope.dataCallback, $scope.searchText, offSet, $scope.settings.filterType);
                 }
-            }
+            };
 
             // Private functions
 
@@ -598,12 +606,12 @@ angular.module("acute.select", [])
                     $scope.popupVisible = false;
                     $scope.wrapperFocus = true;
                     // If all data is loaded
-                    if ($scope.allDataLoaded && !$scope.settings.comboMode) {
+                    if ((!dataFunctionFiltering || $scope.allDataLoaded) && !$scope.settings.comboMode) {
                         // Clear the search text and filter
                         $scope.searchText = "";
                         clearClientFilter();
                     }
-                }
+                }                
             }
 
             function fireChangeEvent() {
@@ -668,7 +676,7 @@ angular.module("acute.select", [])
                         selected = true;
                     }
                 }
-            };
+            }
 
             function upArrowKey() {
                 if ($scope.items.length > 0) {
@@ -688,7 +696,7 @@ angular.module("acute.select", [])
                         }
                     }
                 }
-            };
+            }
 
             function pageUpKey() {
                 if ($scope.items.length > 0 && $scope.selectedItem) {
@@ -700,7 +708,7 @@ angular.module("acute.select", [])
                         ensureItemVisible($scope.selectedItem);
                     }
                 }
-            };
+            }
 
             function pageDownKey() {
                 var newIndex;
@@ -726,7 +734,7 @@ angular.module("acute.select", [])
                         ensureItemVisible($scope.selectedItem);
                     }
                 }
-            };
+            }
 
             function endKey() {
                 if ($scope.items.length > 0) {
@@ -792,10 +800,12 @@ angular.module("acute.select", [])
 
                 var itemCount = $scope.allItems.length;
 
-                // If search text is blank OR paging is enabled && current number of items is >= pageSize (or zero)
-                if ($scope.searchText === "" || ($scope.settings.pageSize && (itemCount >= $scope.settings.pageSize || itemCount === 0))) {
-                    // Data needs to be re-loaded.
-                    $scope.allDataLoaded = false;
+                if (dataFunctionFiltering) {
+                    // If search text is blank OR paging is enabled && current number of items is >= pageSize (or zero)
+                    if ($scope.searchText === "" || ($scope.settings.pageSize && (itemCount >= $scope.settings.pageSize || itemCount === 0))) {
+                        // Data needs to be re-loaded.
+                        $scope.allDataLoaded = false;
+                    }
                 }
 
                 if ($scope.allDataLoaded) {
@@ -828,13 +838,17 @@ angular.module("acute.select", [])
                     checkItemCount();
                 }
                 else {
-                    // Pass search text to data function (if it takes 2 or more arguments)
-                    if ($scope.dataFunction && $scope.dataFunction.length >= 2) {
+                    // Pass search text to data function(if it accepts filter search text)
+                    if (dataFunctionFiltering) {
                         // If search text has enough chars (or it's just been cleared)
                         if ($scope.searchText.length >= $scope.settings.minSearchLength || $scope.searchText == "") {
                             // Get data
                             $scope.dataFunction($scope.dataCallback, $scope.searchText, 0, $scope.settings.filterType);
                         }
+                    }
+                    else if ($scope.searchText === "") {
+                        // Clear filter
+                        clearClientFilter();
                     }
                 }
 
@@ -851,7 +865,7 @@ angular.module("acute.select", [])
                     }
                 }
 
-                $scope.previousSearchText = $scope.searchText
+                $scope.previousSearchText = $scope.searchText;
                 $scope.setListHeight();
             };
 
@@ -873,7 +887,7 @@ angular.module("acute.select", [])
 
             // Remove any client filtering of items
             function clearClientFilter() {
-                if ($scope.allDataLoaded) {
+                if ($scope.dataFunction === null || $scope.allDataLoaded) {
                     $scope.items = $scope.allItems;
                     $scope.setListHeight();
                 }
