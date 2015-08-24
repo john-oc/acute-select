@@ -38,7 +38,7 @@ This example shows how to get acute-select up and running with a list of string 
 
 - in your HMTL add an **ac-select** element (or a div with class="ac-select") and set the **ac-model** and **ac-options** attributes:-
 
-		<ac-select ac-model="data.selectedShape" ac-options="for shape in shapes"></select>
+		<ac-select ac-model="data.selectedShape" ac-options="for shape in shapes"></ac-select>
 
     **Note:-** always close the select tag with &lt;/select> as a self-closing select, i.e. ending in "/>", is not valid.
 
@@ -139,13 +139,13 @@ same copy of the Alaska object as the one in the array. There is a workaround, w
 
 With the acute select directive you can avoid this problem altogether by simply setting ac-key to 'id':-
 
-	<ac-select ac-model="currentState" ac-options="state.name for state in states" ac-key="id"></select>
+	<ac-select ac-model="currentState" ac-options="state.name for state in states" ac-key="id"></ac-select>
 
 ### ac-focus-when attribute ###
 If present, focus will be given to either the combo or search text box when the expression it is set to evaluates as *true*. e.g.
 
 	<ac-select ac-model="currentState" ac-options="state.name for state in states"
-	 ac-focus-when="flags.editMode"></select>
+	 ac-focus-when="flags.editMode"></ac-select>
 
 Then in your controller:-
 
