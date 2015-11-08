@@ -42,7 +42,7 @@
         </div>
         <div class="ac-select-list" ng-style='{ "height": (listHeight + 6) + "px" }' ac-scroll-to="scrollTo" ac-on-scroll="listScrolled()">
             <ul>
-                <li id="{{item.id}}" ng-repeat="item in items track by $index | filter: search" title="{{item.text}}"
+                <li id="{{item.id}}" ng-repeat="item in items track by $index" title="{{item.text}}"
                     ng-class="getItemClass($index)" ng-click="itemClick($index)" ng-style="{ height: settings.itemHeight + 'px', 'line-height': settings.itemHeight + 'px' }">
                     {{item.text}}
                 </li>
