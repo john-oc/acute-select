@@ -1,4 +1,8 @@
-# acute-select #
+# acute-select - No Longer Under Active Development#
+
+## ##
+Current work and family commitments mean I don't have time to address outstanding issues for this project. There are a number of forks that have been made, but I don't know their status. If anyone is interested in taking over the project, please let me know. John
+## ##
 
 **acute-select** is a dropdown select component for [AngularJS](http://angularjs.org/), with no external dependencies other than Angular itself.
 
