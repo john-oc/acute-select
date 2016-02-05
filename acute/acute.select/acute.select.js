@@ -65,6 +65,7 @@ angular.module("acute.select", [])
                 var words = $scope.acOptions.split(' ');
                 var len = words.length;
                 $scope.textField = null;
+                $scope.valField = null;
                 $scope.dataFunction = null;
 
                 // Save initial selection, if any
@@ -74,6 +75,10 @@ angular.module("acute.select", [])
                     if (len > 4) {
                         var label = words[len - 5];     // E.g. colour.name
                         $scope.textField = label.split(".")[1];
+                        
+                        var val = words[len - 3].split('.');
+                        if (val.length > 1)   // E.g. colour.val
+                            $scope.valField = val[1];
                     }
                     var dataName = words[len - 1];
 
@@ -150,7 +155,11 @@ angular.module("acute.select", [])
             $scope.setInitialSelection = function() {
                 if ($scope.model) {
                     $scope.initialSelection = angular.copy($scope.model);
-                    $scope.initialItem = $scope.getItemFromDataItem($scope.model, 0);
+                    
+                    if (!isNaN($scope.initialSelection))
+                        $scope.initialSelection = $scope.initialSelection * 1;
+                        
+                    $scope.initialItem = $scope.getItemFromDataItem($scope.initialSelection, 0);
                     $scope.confirmedItem = $scope.selectedItem = $scope.initialItem;
                     $scope.comboText = $scope.confirmedItem ? $scope.confirmedItem.text : "";
                 }
@@ -173,7 +182,7 @@ angular.module("acute.select", [])
                             // If not currently filtering
                             if (!$scope.searchText) {
                                 // Look for a matching item
-                                if (dataItem === selectedDataItem || (key && selectedDataItem && dataItem[key] == selectedDataItem[key])) {
+                                if (dataItem === selectedDataItem || (key && selectedDataItem && dataItem[key] == selectedDataItem[key]) || ( $scope.valField && item.value === selectedDataItem )) {
                                     confirmSelection(item);
                                     foundSelected = true;
                                 }
@@ -284,6 +293,9 @@ angular.module("acute.select", [])
                     }
                     else if (dataItem[$scope.textField]) {
                         item = { "text": dataItem[$scope.textField], "value": dataItem, "index": itemIndex };
+                    }
+                    else if ($scope.valField){
+                        item = { "text": "", "value": dataItem, "index": itemIndex};
                     }
                 }
                 return item;
