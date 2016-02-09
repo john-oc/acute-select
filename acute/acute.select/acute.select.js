@@ -1040,8 +1040,12 @@ angular.module("acute.select", [])
 // Service to allow host pages to change settings for all instances (in their module.run function)
 .factory('acuteSelectService', function() {
 
+    // Get directory of script
+    var fileName = "acute.select.js";
+    var directory = document.querySelector('script[src$="' + fileName + '"]').getAttribute('src').replace(fileName,"");
+    
     var defaultSettings = {
-        "templatePath": "/acute.select/template",
+        "templatePath": directory + "template",
         "noItemsText": "No items found.",
         "placeholderText": "Please select...",
         "itemHeight": 24,
